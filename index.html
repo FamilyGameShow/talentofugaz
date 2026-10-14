@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Talento Fugaz - Vivo</title>
+<title>Talento Fugaz</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
@@ -10,72 +10,40 @@ body{font-family:system-ui,sans-serif;background:#000;color:#fff;text-align:cent
 video{width:100%;max-width:420px;background:#111;border-radius:16px;border:2px solid #00f5d4;min-height:260px;object-fit:cover}
 button{background:#00f5d4;color:#000;border:0;padding:14px 24px;border-radius:30px;font-weight:900;margin:6px;font-size:16px;cursor:pointer}
 button.sec{background:#222;color:#fff;border:1px solid #333}
-#status{color:#00f5d4;margin:10px;font-size:13px}
+#status{color:#00f5d4;margin:10px;font-size:12px}
 .box{background:#151515;padding:14px;border-radius:14px;margin:14px auto;max-width:420px;word-break:break-all;border:1px solid #222}
 #playOverlay{display:none;background:#00f5d4;color:#000;padding:16px;border-radius:12px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer}
 input,select{padding:12px;border-radius:20px;border:1px solid #333;background:#111;color:#fff;text-align:center}
-.money{background:linear-gradient(180deg,#0e2a26,#0a1a18);border:1px solid #00f5d488;padding:12px;border-radius:12px;margin-top:12px;text-align:left}
+.money{background:#0e2a26;border:1px solid #00f5d488;padding:12px;border-radius:12px;margin-top:12px;text-align:left}
 .money b{color:#00f5d4}
 .propinaItem{font-size:12px;color:#aaa;border-bottom:1px solid #222;padding:4px 0;display:flex;justify-content:space-between}
 </style>
 </head>
 <body>
-<h1 id="mainTitle" style="color:#00f5d4;margin:8px;letter-spacing:2px">FUGAZ</h1>
+<h1 id="mainTitle" style="color:#00f5d4">FUGAZ</h1>
 <div id="status">Listo</div>
-<div id="setup">
-<input id="alias" placeholder="Tu alias de MercadoPago">
-<br><br><button onclick="prender()">🔴 PRENDER VIVO</button>
-<p style="color:#666;font-size:11px;max-width:360px;margin:12px auto">Al prender aceptás que Talento Fugaz se queda con 15% del total recaudado. El 85% es tuyo. La plata te llega directo a tu alias.</p>
-</div>
-<div id="vivoUI" style="display:none">
-<video id="localVideo" autoplay muted playsinline></video>
-<div class="box">
-<p style="font-size:12px;color:#aaa">Mostrá este QR en la plaza</p>
-<input id="shareLink" readonly style="width:90%">
-<button onclick="copiar()">Copiar Link</button>
-<div id="qr" style="margin-top:10px"></div>
-<p id="viewers">👀 0 mirando</p>
-<div class="money" id="artistMoney">
-<div>💰 Total recaudado: <b id="total">$0</b></div>
-<div>🎤 Tuyo (85%): <b id="tuyo">$0</b></div>
-<div style="font-size:12px;color:#888">Comisión Talento Fugaz (15%): <span id="comision">$0</span></div>
-<div id="listaPropinas" style="margin-top:8px;max-height:120px;overflow:auto"></div>
-<button class="sec" onclick="cerrarResumen()" style="width:100%;margin-top:10px">Cerrar vivo y ver resumen</button>
-</div>
-</div>
-<button onclick="location.reload()" style="background:#333;color:#fff">Apagar Vivo</button>
-</div>
-<div id="viewerUI" style="display:none">
-<video id="remoteVideo" autoplay playsinline muted></video>
-<div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER Y ESCUCHAR</div>
-<p id="viewerStatus">Conectando...</p>
-<div class="box">
-<p style="font-size:13px">¿Te gustó el show? Dejá propina</p>
-<p id="aliasShow" style="color:#00f5d4;font-weight:900"></p>
-<button onclick="copiarAlias()">Copiar alias</button>
-<div style="margin-top:12px">
-<select id="monto"><option value="500">$500</option><option value="1000" selected>$1.000</option><option value="2000">$2.000</option><option value="5000">$5.000</option><option value="10000">$10.000</option></select>
-<button onclick="yaTransferi()" style="background:#fff">✅ Ya transferí</button>
-</div>
-</div>
-</div>
+<div id="setup"><input id="alias" placeholder="Tu alias MP ej: mati.mp"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button><p style="color:#666;font-size:11px;max-width:360px;margin:12px auto">Aceptás 15% comisión. 85% tuyo. Plata va directo a tu alias.</p></div>
+<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiar('shareLink')">Copiar Link</button><div id="qr"></div><p id="viewers">👀 0</p><div class="money"><div>💰 Total: <b id="total">$0</b></div><div>🎤 Tuyo 85%: <b id="tuyo">$0</b></div><div style="font-size:12px">Comisión 15%: <span id="comision">$0</span></div><div id="listaPropinas" style="margin-top:8px"></div><button class="sec" onclick="cerrarResumen()" style="width:100%;margin-top:10px">Cerrar y ver resumen</button></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
+<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER Y OIR</div><p id="viewerStatus">Conectando...</p><div class="box"><p>¿Te gustó? Dejá propina</p><p id="aliasShow" style="color:#00f5d4;font-weight:900;font-size:20px"></p><button onclick="copiarAlias()">Copiar alias</button><div style="margin-top:12px"><select id="monto"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()" style="background:#fff">✅ Ya transferí</button></div></div></div>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 let localStream,pcs={},currentRoomRef=null,currentAlias="";
-const statusEl=document.getElementById('status');
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'}]};
 const roomIdParam=new URLSearchParams(location.search).get('id');
 if(roomIdParam){document.getElementById('mainTitle').innerText='Talento Fugaz'; entrarComoEspectador(roomIdParam);}
-async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('Poné tu alias');currentAlias=a;statusEl.innerText='Prendiendo...';localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';document.getElementById('mainTitle').innerText='FUGAZ - Panel Artista';crearSala(a);}
-async function crearSala(alias){const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});currentRoomRef=roomRef;const id=roomRef.id;const link=location.origin+location.pathname+'?id='+id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}" style="border-radius:10px">`;statusEl.innerText='🔴 VIVO PRENDIDO - Solo vos ves la recaudación';roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText=`👀 ${snap.size} mirando`;for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let total=0; let html='';snap.forEach(doc=>{const d=doc.data();total+= Number(d.monto||0);const hora = new Date(d.ts).toLocaleTimeString();html+= `<div class="propinaItem"><span>${hora} - $${d.monto}</span><span>✅</span></div>`;});const comision=Math.round(total*0.15);const tuyo=total-comision;document.getElementById('total').innerText='$'+total;document.getElementById('tuyo').innerText='$'+tuyo;document.getElementById('comision').innerText='$'+comision;document.getElementById('listaPropinas').innerHTML=html||'<div style="color:#555;font-size:11px">Aún no hay propinas</div>';});}
+
+function copiar(id){const el=document.getElementById(id);el.select();el.setSelectionRange(0,99999);try{document.execCommand('copy');navigator.clipboard.writeText(el.value).catch(()=>{});alert('Copiado: '+el.value);}catch(e){prompt('Copiá manualmente:',el.value);}}
+function copiarAlias(){const t=currentAlias;if(!t)return;const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');alert('Alias copiado: '+t);}catch(e){prompt('Copiá el alias:',t);}document.body.removeChild(ta);}
+
+async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('alias');currentAlias=a;document.getElementById('status').innerText='Prendiendo...';try{localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});}catch(e){alert('Permiso cámara: '+e.message);return;}document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';document.getElementById('mainTitle').innerText='FUGAZ - Panel Artista';crearSala(a);}
+async function crearSala(alias){const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});currentRoomRef=roomRef;const id=roomRef.id;const link=location.origin+location.pathname+'?id='+id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}">`;document.getElementById('status').innerText='🔴 VIVO';roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText=`👀 ${snap.size}`;for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let total=0,html='';snap.forEach(doc=>{total+=Number(doc.data().monto||0);html+=`<div class="propinaItem"><span>${new Date(doc.data().ts).toLocaleTimeString()} - $${doc.data().monto}</span><span>✅</span></div>`;});const com=Math.round(total*0.15);document.getElementById('total').innerText='$'+total;document.getElementById('tuyo').innerText='$'+(total-com);document.getElementById('comision').innerText='$'+com;document.getElementById('listaPropinas').innerHTML=html||'Sin propinas aún';});}
+
 let viewerRoomRef=null;
-async function entrarComoEspectador(id){document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';viewerRoomRef=db.collection('fugaz_vivo').doc(id);const snap=await viewerRoomRef.get();if(!snap.exists){document.getElementById('viewerStatus').innerText='Este vivo terminó';return;}const data=snap.data();document.getElementById('aliasShow').innerText=data.alias;currentAlias=data.alias;const pc=new RTCPeerConnection(ice);const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='¡EN VIVO! Talento Fugaz';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=viewerRoomRef.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:true});await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}});});}
+async function entrarComoEspectador(id){document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';viewerRoomRef=db.collection('fugaz_vivo').doc(id);const snap=await viewerRoomRef.get();if(!snap.exists){document.getElementById('viewerStatus').innerText='Terminado';return;}document.getElementById('aliasShow').innerText=snap.data().alias;currentAlias=snap.data().alias;const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO - Talento Fugaz';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=viewerRoomRef.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch(e){console.log(e)}})});}
 function desbloquear(){const v=document.getElementById('remoteVideo');v.muted=false;v.play().then(()=>document.getElementById('playOverlay').style.display='none');}
-function copiar(){navigator.clipboard.writeText(document.getElementById('shareLink').value);alert('Link copiado');}
-function copiarAlias(){navigator.clipboard.writeText(currentAlias);alert('Alias copiado: '+currentAlias);}
-async function yaTransferi(){const monto=document.getElementById('monto').value;if(!viewerRoomRef) return;await viewerRoomRef.collection('propinas').add({monto:Number(monto),ts:Date.now()});alert('¡Gracias! Le avisaste al artista que transferiste $'+monto+'. Ahora hace la transferencia en tu app de MP a '+currentAlias);}
-function cerrarResumen(){const total=document.getElementById('total').innerText;const tuyo=document.getElementById('tuyo').innerText;const com=document.getElementById('comision').innerText;alert(`RESUMEN VIVO\nTotal: ${total}\nTuyo 85%: ${tuyo}\nComisión Talento Fugaz 15%: ${com}\n\nLa plata ya está en tu cuenta. Coordiná el pago del 15% a @talentofugaz.mp`);}
+async function yaTransferi(){const monto=document.getElementById('monto').value;if(!viewerRoomRef){alert('Error sala');return;}try{await viewerRoomRef.collection('propinas').add({monto:Number(monto),ts:Date.now()});alert('¡Gracias! Avisaste $'+monto+'. Ahora transferí en tu app MP a '+currentAlias);}catch(e){alert('Error Firestore: '+e.message+'\nActualizá las reglas que te pasé arriba');}}
+function cerrarResumen(){alert(`Total: ${document.getElementById('total').innerText} | Tuyo: ${document.getElementById('tuyo').innerText} | Comisión: ${document.getElementById('comision').innerText}`);}
 </script>
 </body>
 </html>
