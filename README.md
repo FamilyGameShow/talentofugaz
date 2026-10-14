@@ -1,31 +1,19 @@
-# FUGAZ - Talento Fugaz
-> El talento pasa rápido. No lo dejes ir.
+# Talento Fugaz
 
-Plataforma para artistas callejeros de La Plata.
-Un artista prende vivo desde el semáforo (7 y 50), genera un QR y un link público. El que pasa escanea y deja propina por MercadoPago aunque el artista ya se haya ido.
+Plataforma para artistas callejeros de La Plata. Prendé vivo, mostrá QR en la plaza, recibí propinas.
 
-### Problema
-El artista callejero solo gana si la gente tiene monedas en el momento. 90% se va sin dejar nada.
+### Para artistas
+1. Entrá a talentofugaz.com
+2. Poné tu alias de Mercado Pago
+3. Prendé vivo y mostrá el QR
+4. La gente te ve en vivo y te transfiere directo
+5. Solo vos ves en tu panel cuánto va entrando
 
-### Solución FUGAZ
-1. Artista prende vivo con un click
-2. Se genera QR + Link público `fugaz.ar/id`
-3. El público escanea y ve el vivo + deja propina por MP
+### Reglas (importante)
+- La plata va directo a tu alias de MP, nosotros no la tocamos
+- Comisión Talento Fugaz: 15% del total recaudado
+- Tu ganancia: 85%
+- Al cerrar el vivo ves el resumen y transferís el 15% a @talentofugaz.mp
+- El público nunca ve montos, solo el show
 
-### Demo en vivo
-🔴 [https://TU_USUARIO.github.io/talentofugaz/](https://TU_USUARIO.github.io/talentofugaz/)
-
-### Stack v2 (prototipo)
-- HTML Single File
-- Firebase Firestore (signaling WebRTC)
-- WebRTC para vivo real P2P
-- MercadoPago Alias Link
-- QR API
-
-### Roadmap
-- [x] v1: QR + MP local
-- [x] v2: Vivo real P2P + Link compartible
-- [ ] v3: Mapa en vivo de La Plata + Split de pagos 10%
-- [ ] v4: App + Historial de talentos fugaces
-
-Hecho en La Plata, AR.
+Esto es para que veas que no hay tongo. Transparencia total.
