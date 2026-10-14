@@ -6,64 +6,61 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
-body{background:#000;color:#fff;text-align:center;font-family:system-ui;padding:10px;margin:0}
-video{width:100%;max-width:400px;background:#222;border-radius:12px;border:2px solid #00f5d4;min-height:250px}
-button{background:#00f5d4;color:#000;border:0;padding:12px 20px;border-radius:30px;font-weight:900;margin:5px}
-.box{background:#111;padding:12px;border-radius:12px;max-width:400px;margin:10px auto;border:1px solid #333}
-#debug{background:#220;padding:8px;font-size:11px;color:#ff0;max-width:400px;margin:10px auto;white-space:pre-wrap;text-align:left;max-height:120px;overflow:auto}
-#playOverlay{display:none;background:#00f5d4;color:#000;padding:14px;border-radius:10px;font-weight:900;margin:10px auto;max-width:400px;cursor:pointer}
+body{background:#000;color:#fff;text-align:center;font-family:system-ui;padding:12px;margin:0}
+video{width:100%;max-width:400px;background:#111;border-radius:16px;border:2px solid #00f5d4;min-height:260px;object-fit:cover}
+button{background:#00f5d4;color:#000;border:0;padding:14px 24px;border-radius:30px;font-weight:900;margin:6px;font-size:16px;cursor:pointer}
+button.sec{background:#222;color:#fff;border:1px solid #333}
+.box{background:#151515;padding:14px;border-radius:14px;max-width:420px;margin:14px auto;border:1px solid #222}
+#playOverlay{display:none;background:#00f5d4;color:#000;padding:16px;border-radius:12px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer}
+input,select{padding:12px;border-radius:20px;border:1px solid #333;background:#111;color:#fff;text-align:center}
+.money{background:#0e2a26;border:1px solid #00f5d422;padding:12px;border-radius:12px;text-align:left}
 </style>
 </head>
 <body>
-<h1 id="tit" style="color:#00f5d4">FUGAZ</h1>
-<div id="status">Iniciando...</div>
-<div id="debug">log:</div>
+<h1 id="tit" style="color:#00f5d4;letter-spacing:2px">FUGAZ</h1>
+<div id="status" style="color:#00f5d4;font-size:12px">Listo</div>
 
-<div id="setup"><input id="alias" placeholder="alias MP" style="padding:10px;border-radius:20px;border:1px solid #333;background:#111;color:#fff"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button></div>
+<div id="setup"><input id="alias" placeholder="Tu alias MP"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button><p style="color:#666;font-size:11px;max-width:340px;margin:12px auto">Al prender aceptás comisión 15%. Tu ganancia 85%. Plata va directo a vos.</p></div>
 
-<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiarLink()">Copiar Link</button><div id="qr"></div><p id="viewers">👀 0</p><div style="text-align:left;background:#0e2a26;padding:10px;border-radius:10px"><div>Total: <b id="total">$0</b></div><div>Tuyo 85%: <b id="tuyo">$0</b></div><div>Comisión 15%: <span id="comision">$0</span></div><div id="lista"></div></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
+<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiarLink()">Copiar Link</button><div id="qr" style="margin-top:10px"></div><p id="viewers">👀 0 mirando</p><div class="money"><div>💰 Total: <b id="total">$0</b></div><div>🎤 Tuyo 85%: <b id="tuyo">$0</b></div><div style="font-size:12px;color:#888">Comisión 15%: <span id="comision">$0</span></div><div id="lista" style="margin-top:8px;font-size:12px;color:#aaa"></div><button class="sec" onclick="alert('Total: '+totalEl.innerText+' | Tuyo: '+tuyoEl.innerText)" style="width:100%;margin-top:10px">Ver resumen</button></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
 
-<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCA PARA VER Y OIR</div><p id="viewerStatus">Conectando...</p><div class="box"><p id="aliasShow" style="color:#00f5d4;font-size:22px;font-weight:900"></p><button onclick="copiarAlias()">Copiar alias (funciona 100%)</button><br><br><select id="monto" style="padding:10px;border-radius:20px"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()" style="background:#fff">✅ Ya transferí</button></div></div>
+<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER Y ESCUCHAR</div><p id="viewerStatus">Conectando...</p><div class="box"><p style="margin:4px">Show en vivo - Talento Fugaz</p><p id="aliasShow" style="color:#00f5d4;font-size:22px;font-weight:900;margin:6px"></p><button onclick="copiarYTransferir()" style="background:#fff;color:#000;width:100%">📋 Copiar alias y transferir</button><p style="font-size:11px;color:#666;margin-top:8px">Se copia el alias y te abre Mercado Pago. Solo pegás el alias ahí.</p><div style="margin-top:14px;border-top:1px solid #222;padding-top:10px"><select id="monto"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()" style="background:#00f5d4">✅ Ya transferí</button></div></div></div>
 
 <script>
-function log(t){const d=document.getElementById('debug');d.innerText+='\n'+t; console.log(t);}
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
-let localStream,pcs={},currentAlias="",viewerRoomRef=null,currentRoomId=null;
+let localStream,pcs={},currentAlias="",currentRoomId=null;
+let totalEl=document.getElementById('total'),tuyoEl=document.getElementById('tuyo');
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
 const roomIdParam=new URLSearchParams(location.search).get('id');
-log('URL id='+roomIdParam);
-if(roomIdParam){document.getElementById('tit').innerText='Talento Fugaz';currentRoomId=roomIdParam; entrarComoEspectador(roomIdParam); document.getElementById('status').innerText='Modo espectador';}else{document.getElementById('status').innerText='Modo artista';}
+if(roomIdParam){document.getElementById('tit').innerText='Talento Fugaz';currentRoomId=roomIdParam;entrarComoEspectador(roomIdParam);}
 
-function copiarLink(){const el=document.getElementById('shareLink');const ta=document.createElement('textarea');ta.value=el.value;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Link copiado');}
-function copiarAlias(){const ta=document.createElement('textarea');ta.value=currentAlias;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');alert('Alias copiado: '+currentAlias);}catch(e){prompt('Copiá:',currentAlias);}document.body.removeChild(ta);}
+function copiarLink(){const ta=document.createElement('textarea');ta.value=document.getElementById('shareLink').value;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Link copiado');}
 
-async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('alias');currentAlias=a;log('pidiendo camara');try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}catch(e){log('ERROR CAMARA '+e.message);alert(e.message);return;}document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';crearSala(a);}
+function copiarYTransferir(){
+ const ta=document.createElement('textarea');ta.value=currentAlias;document.body.appendChild(ta);ta.select();
+ try{document.execCommand('copy');}catch(e){}
+ document.body.removeChild(ta);
+ // Intenta abrir app MP
+ alert('Alias '+currentAlias+' copiado! Te abro Mercado Pago, pegalo en Transferir.');
+ // Deep link a MP - si no tiene app, va a la web
+ window.location.href='mercadopago://transfer';
+ setTimeout(()=>{window.open('https://www.mercadopago.com.ar/money-transfer','_blank');},800);
+}
+
+async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('Poné alias');currentAlias=a;try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}catch(e){alert('Permiso cámara');return;}document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';document.getElementById('tit').innerText='FUGAZ - Panel Artista';crearSala(a);}
 
 async function crearSala(alias){
- try{log('creando sala firestore');const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});currentRoomId=roomRef.id;viewerRoomRef=roomRef;const link=location.origin+location.pathname+'?id='+roomRef.id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;log('sala creada '+roomRef.id);
- roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText='👀 '+snap.size;for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer){log('viewer sin offer');continue;}log('nuevo viewer '+doc.id);const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});log('answer enviada');doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});
- roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let total=0,html='';snap.forEach(d=>{total+=Number(d.data().monto||0);html+=d.data().monto+' ';});document.getElementById('total').innerText='$'+total;document.getElementById('tuyo').innerText='$'+Math.round(total*0.85);document.getElementById('comision').innerText='$'+Math.round(total*0.15);document.getElementById('lista').innerText=html;});
- }catch(e){log('ERROR FIRESTORE CREAR SALA: '+e.message);alert('Error Firebase: '+e.message+' - Publicá las reglas que te pasé');}
+ const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});currentRoomId=roomRef.id;const link=location.origin+location.pathname+'?id='+roomRef.id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}" style="border-radius:10px">`;document.getElementById('status').innerText='🔴 VIVO';
+ roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText='👀 '+snap.size+' mirando';for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});
+ roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let total=0,html='';snap.forEach(d=>{total+=Number(d.data().monto||0);const h=new Date(d.data().ts).toLocaleTimeString();html+=`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:2px 0"><span>${h}</span><span>$${d.data().monto} ✅</span></div>`;});document.getElementById('total').innerText='$'+total;document.getElementById('tuyo').innerText='$'+Math.round(total*0.85);document.getElementById('comision').innerText='$'+Math.round(total*0.15);document.getElementById('lista').innerHTML=html||'Aún sin propinas';});
 }
 
 async function entrarComoEspectador(id){
- try{log('entrando sala '+id);document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';viewerRoomRef=db.collection('fugaz_vivo').doc(id);const snap=await viewerRoomRef.get();if(!snap.exists){log('sala no existe');document.getElementById('viewerStatus').innerText='Terminó';return;}currentAlias=snap.data().alias;document.getElementById('aliasShow').innerText=currentAlias;log('alias '+currentAlias);
- const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{log('ontrack! video llega');e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};pc.onconnectionstatechange=()=>{log('conexion: '+pc.connectionState);};const viewerDoc=viewerRoomRef.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate){viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON()); log('ice local');}};const offer=await pc.createOffer();await pc.setLocalDescription(offer);log('offer creada');await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});log('offer subida');viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){log('answer recibida');await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added'){log('ice remoto');try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch(e){log('ice error '+e.message)}}})});}catch(e){log('ERROR VIEWER '+e.message);document.getElementById('viewerStatus').innerText='Error: '+e.message;}
-}
+ document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo').doc(id);const snap=await roomRef.get();if(!snap.exists){document.getElementById('viewerStatus').innerText='Vivo terminado';return;}currentAlias=snap.data().alias;document.getElementById('aliasShow').innerText=currentAlias;
+ const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO - Talento Fugaz';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=roomRef.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp}});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}
 function desbloquear(){const v=document.getElementById('remoteVideo');v.muted=false;v.play().then(()=>document.getElementById('playOverlay').style.display='none');}
-async function yaTransferi(){
- const monto=document.getElementById('monto').value;
- const id = currentRoomId || new URLSearchParams(location.search).get('id');
- log('yaTransferi id='+id+' monto='+monto);
- if(!id){alert('No hay id de sala en URL');return;}
- try{
-   const ref = db.collection('fugaz_vivo').doc(id);
-   await ref.collection('propinas').add({monto:Number(monto),ts:Date.now()});
-   alert('¡Gracias! Avisaste $'+monto+'. Ahora transferí en tu app MP a '+currentAlias);
- }catch(e){log('ERROR PROPINA '+e.message);alert('Error Firestore propina: '+e.message+'\nPublicá las reglas');}
-}
-function cerrarResumen(){alert('Resumen: '+document.getElementById('total').innerText);}
+async function yaTransferi(){const monto=document.getElementById('monto').value;const id=currentRoomId||new URLSearchParams(location.search).get('id');try{await db.collection('fugaz_vivo').doc(id).collection('propinas').add({monto:Number(monto),ts:Date.now()});alert('¡Gracias! Le avisaste al artista $'+monto);}catch(e){alert('Error: '+e.message);}}
 </script>
 </body>
 </html>
