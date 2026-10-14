@@ -1,133 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FUGAZ - Vivo</title>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FUGAZ</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<style>
-body{font-family:system-ui,sans-serif;background:#000;color:#fff;text-align:center;padding:12px;margin:0}
-video{width:100%;max-width:420px;background:#111;border-radius:14px;border:2px solid #00f5d4;min-height:240px;object-fit:cover}
-button{background:#00f5d4;color:#000;border:0;padding:16px 28px;border-radius:30px;font-weight:900;margin:8px;font-size:17px;cursor:pointer}
-#status{color:#00f5d4;margin:10px;font-size:13px}
-.box{background:#151515;padding:15px;border-radius:12px;margin:15px auto;max-width:420px;word-break:break-all;border:1px solid #222}
-#playOverlay{display:none;background:#00f5d4;color:#000;padding:18px;border-radius:12px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer}
-input{padding:12px;border-radius:20px;border:1px solid #333;width:85%;max-width:320px;text-align:center;background:#111;color:#fff}
-</style>
-</head>
-<body>
-<h1 style="color:#00f5d4;margin:8px;letter-spacing:2px">FUGAZ</h1>
-<div id="status">Listo para prender</div>
-<div id="setup">
-<input id="alias" placeholder="Tu alias de MercadoPago">
-<br><br><button onclick="prender()">🔴 PRENDER VIVO</button>
-</div>
-<div id="vivoUI" style="display:none">
-<video id="localVideo" autoplay muted playsinline></video>
-<div class="box">
-<input id="shareLink" readonly>
-<button onclick="copiar()">Copiar Link</button>
-<div id="qr" style="margin-top:12px"></div>
-<p id="viewers">👀 0 mirando</p>
-</div>
-<button onclick="location.reload()" style="background:#333;color:#fff">Apagar Vivo</button>
-</div>
-<div id="viewerUI" style="display:none">
-<video id="remoteVideo" autoplay playsinline muted></video>
-<div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER Y ESCUCHAR</div>
-<p id="viewerStatus">Conectando...</p>
-<a id="mpLink" target="_blank"><button>Dejar Propina 💸</button></a>
-</div>
+<style>body{font-family:sans-serif;background:#000;color:#fff;text-align:center;padding:12px;margin:0}video{width:100%;max-width:420px;background:#111;border-radius:14px;border:2px solid #00f5d4;min-height:240px}button{background:#00f5d4;color:#000;border:0;padding:14px 24px;border-radius:30px;font-weight:900;margin:8px} #status{color:#00f5d4}.box{background:#151515;padding:15px;border-radius:12px;margin:15px auto;max-width:420px;word-break:break-all} #playOverlay{display:none;background:#00f5d4;color:#000;padding:16px;border-radius:12px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer} input{padding:12px;border-radius:20px;border:1px solid #333;width:80%;background:#111;color:#fff}</style>
+</head><body>
+<h1 style="color:#00f5d4">FUGAZ</h1><div id="status">Listo</div>
+<div id="setup"><input id="alias" placeholder="alias MP"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button></div>
+<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly><button onclick="copiar()">Copiar</button><div id="qr"></div><p id="viewers">👀 0</p></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
+<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER Y OIR</div><p id="viewerStatus">Conectando...</p><a id="mpLink" target="_blank"><button>Propina 💸</button></a></div>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",
-  authDomain: "family-game-show.firebaseapp.com",
-  projectId: "family-game-show",
-  storageBucket: "family-game-show.appspot.com",
-  messagingSenderId: "1093862512261",
-  appId: "1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-let localStream;
-let pcs = {};
-const statusEl = document.getElementById('status');
-const params = new URLSearchParams(location.search);
-const roomId = params.get('id');
-if(roomId) entrarComoEspectador(roomId);
-async function prender(){
- const alias=document.getElementById('alias').value.trim();
- if(!alias){alert('Poné tu alias');return;}
- statusEl.innerText="Prendiendo...";
- localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
- document.getElementById('localVideo').srcObject=localStream;
- document.getElementById('setup').style.display='none';
- document.getElementById('vivoUI').style.display='block';
- await crearSala(alias);
-}
-async function crearSala(alias){
- const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});
- const id=roomRef.id;
- const link=location.origin+location.pathname+'?id='+id;
- document.getElementById('shareLink').value=link;
- document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}">`;
- statusEl.innerText="🔴 VIVO PRENDIDO";
- roomRef.collection('viewers').onSnapshot(async snap=>{
-   document.getElementById('viewers').innerText=`👀 ${snap.size} mirando`;
-   for(let change of snap.docChanges()){
-     if(change.type==='added'){
-       const viewerDoc = change.doc;
-       const viewerId = viewerDoc.id;
-       if(pcs[viewerId]) continue;
-       const viewerData = viewerDoc.data();
-       if(!viewerData.offer) continue;
-       const pc = new RTCPeerConnection({iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]});
-       pcs[viewerId]=pc;
-       localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-       pc.onicecandidate=e=>{if(e.candidate) viewerDoc.ref.collection('callerCandidates').add(e.candidate.toJSON());};
-       await pc.setRemoteDescription(new RTCSessionDescription(viewerData.offer));
-       const answer = await pc.createAnswer();
-       await pc.setLocalDescription(answer);
-       await viewerDoc.ref.update({answer:{type:answer.type,sdp:answer.sdp}});
-       viewerDoc.ref.collection('calleeCandidates').onSnapshot(s=>{
-         s.docChanges().forEach(async c=>{ if(c.type==='added'){ await pc.addIceCandidate(new RTCIceCandidate(c.doc.data())); }});
-       });
-     }
-   }
- });
-}
-async function entrarComoEspectador(id){
- document.getElementById('setup').style.display='none';
- document.getElementById('viewerUI').style.display='block';
- const roomRef=db.collection('fugaz_vivo').doc(id);
- const snap=await roomRef.get();
- if(!snap.exists){document.getElementById('viewerStatus').innerText='Vivo terminado';return;}
- const data=snap.data();
- document.getElementById('mpLink').href='https://www.mercadopago.com.ar/home?alias='+encodeURIComponent(data.alias);
- const pc=new RTCPeerConnection({iceServers:[{urls:['stun:stun.l.google.com:19302']}]});
- const remoteStream=new MediaStream();
- const v=document.getElementById('remoteVideo');
- v.srcObject=remoteStream;
- pc.ontrack=e=>{ e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t)); document.getElementById('viewerStatus').innerText='¡EN VIVO!'; document.getElementById('playOverlay').style.display='block'; v.play().catch(()=>{}); };
- const viewerRef = await roomRef.collection('viewers').add({});
- pc.onicecandidate=e=>{if(e.candidate) viewerRef.collection('calleeCandidates').add(e.candidate.toJSON());};
- const offer=await pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:true});
- await pc.setLocalDescription(offer);
- await viewerRef.set({offer:{type:offer.type,sdp:offer.sdp}, joined:Date.now()});
- viewerRef.onSnapshot(async s=>{
-   const d=s.data();
-   if(d && d.answer &&!pc.currentRemoteDescription){
-     await pc.setRemoteDescription(new RTCSessionDescription(d.answer));
-   }
- });
- viewerRef.collection('callerCandidates').onSnapshot(s=>{ s.docChanges().forEach(async c=>{ if(c.type==='added'){ await pc.addIceCandidate(new RTCIceCandidate(c.doc.data())); }});});
- window._viewerRef=viewerRef;
-}
-function desbloquear(){
- const v=document.getElementById('remoteVideo');
- v.muted=false; v.play().then(()=>{document.getElementById('playOverlay').style.display='none';});
-}
-function copiar(){navigator.clipboard.writeText(document.getElementById('shareLink').value); alert('Copiado');}
-</script>
-</body>
-</html>
+const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+let localStream,pcs={};const statusEl=document.getElementById('status');
+const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'}]};
+const roomId=new URLSearchParams(location.search).get('id');if(roomId) entrarComoEspectador(roomId);
+async function prender(){const a=document.getElementById('alias').value.trim();if(!a)return alert('alias');statusEl.innerText='Prendiendo...';localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';crearSala(a);}
+async function crearSala(alias){const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});const id=roomRef.id;const link=location.origin+location.pathname+'?id='+id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;statusEl.innerText='VIVO '+id;roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText=`👀 ${snap.size} mirando`;for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});}
+async function entrarComoEspectador(id){document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo').doc(id);const snap=await roomRef.get();if(!snap.exists){document.getElementById('viewerStatus').innerText='Terminado';return;}document.getElementById('mpLink').href='https://www.mercadopago.com.ar/home?alias='+encodeURIComponent(snap.data().alias);const pc=new RTCPeerConnection(ice);const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='¡EN VIVO!';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerRef=roomRef.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerRef.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:true});await pc.setLocalDescription(offer);await viewerRef.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerRef.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerRef.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});window._viewerRef=viewerRef;}
+function desbloquear(){const v=document.getElementById('remoteVideo');v.muted=false;v.play().then(()=>document.getElementById('playOverlay').style.display='none');}
+function copiar(){navigator.clipboard.writeText(document.getElementById('shareLink').value);alert('copiado');}
+</script></body></html>
