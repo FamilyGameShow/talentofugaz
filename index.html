@@ -1,193 +1,135 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>FUGAZ - Talento Fugaz</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <style>
-        body{font-family:sans-serif;background:#000;color:#fff;text-align:center;padding:20px}
-        video{width:100%;max-width:400px;background:#111;border-radius:12px;border:2px solid #00f5d4}
-        button{background:#00f5d4;color:#000;border:0;padding:15px 25px;border-radius:30px;font-weight:900;margin:10px;font-size:16px}
-        input{padding:12px;border-radius:20px;border:1px solid #333;width:80%;max-width:300px;text-align:center}
-        #status{color:#00f5d4;margin:10px;font-size:12px}
-        .box{background:#111;padding:15px;border-radius:12px;margin:15px 0;word-break:break-all}
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FUGAZ</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:sans-serif;background:#000;color:#fff;text-align:center;padding:15px;margin:0}
+video{width:100%;max-width:400px;background:#111;border-radius:12px;border:2px solid #00f5d4;min-height:220px}
+button{background:#00f5d4;color:#000;border:0;padding:16px 28px;border-radius:30px;font-weight:900;margin:8px;font-size:17px;cursor:pointer}
+#status{color:#00f5d4;margin:10px;font-size:13px}
+.box{background:#111;padding:15px;border-radius:12px;margin:15px auto;max-width:400px;word-break:break-all}
+#playOverlay{display:none;background:#00f5d4;color:#000;padding:20px;border-radius:12px;font-weight:900;margin:10px auto;max-width:400px;cursor:pointer}
+</style>
 </head>
 <body>
-    <h1 style="color:#00f5d4">FUGAZ</h1>
-    <p>TALENTO FUGAZ</p>
-    <div id="status">Iniciando...</div>
+<h1 style="color:#00f5d4;margin:10px">FUGAZ</h1>
+<div id="status">Listo</div>
 
-    <div id="setup">
-        <input id="alias" placeholder="Tu alias de MercadoPago">
-        <br><button onclick="prender()">🔴 PRENDER VIVO</button>
-    </div>
+<div id="setup">
+<input id="alias" placeholder="Alias MercadoPago" style="padding:12px;border-radius:20px;border:1px solid #333;width:80%;max-width:300px;text-align:center">
+<br><br><button onclick="prender()">🔴 PRENDER VIVO</button>
+</div>
 
-    <div id="vivoUI" style="display:none">
-        <video id="localVideo" autoplay muted playsinline></video>
-        <div class="box">
-            <p>Link para compartir:</p>
-            <input id="shareLink" readonly>
-            <br><button onclick="copiar()">Copiar Link</button>
-            <br><br>
-            <div id="qr"></div>
-        </div>
-        <button onclick="location.reload()">Apagar</button>
-    </div>
+<div id="vivoUI" style="display:none">
+<video id="localVideo" autoplay muted playsinline></video>
+<div class="box">
+<input id="shareLink" readonly style="width:100%;padding:10px;border-radius:10px;border:0;text-align:center">
+<button onclick="copiar()">Copiar Link</button>
+<div id="qr" style="margin-top:10px"></div>
+<p id="viewers">👀 0 mirando</p>
+</div>
+<button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button>
+</div>
 
-    <div id="viewerUI" style="display:none">
-        <video id="remoteVideo" autoplay playsinline></video>
-        <p id="viewerStatus">Conectando al vivo...</p>
-        <a id="mpLink" target="_blank"><button>Dejar Propina 💸</button></a>
-    </div>
+<div id="viewerUI" style="display:none">
+<video id="remoteVideo" autoplay playsinline muted></video>
+<div id="playOverlay" onclick="desbloquear()">👆 TOCÁ ACÁ PARA VER EL VIVO</div>
+<p id="viewerStatus">Conectando...</p>
+<a id="mpLink" target="_blank"><button id="mpBtn">Dejar Propina 💸 $500</button></a>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",
-            authDomain: "family-game-show.firebaseapp.com",
-            projectId: "family-game-show",
-            storageBucket: "family-game-show.appspot.com",
-            messagingSenderId: "1093862512261",
-            appId: "1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",
+  authDomain: "family-game-show.firebaseapp.com",
+  projectId: "family-game-show",
+  storageBucket: "family-game-show.appspot.com",
+  messagingSenderId: "1093862512261",
+  appId: "1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let pc, localStream, remoteStream;
+const statusEl = document.getElementById('status');
+const params = new URLSearchParams(location.search);
+const roomId = params.get('id');
 
-        let pc, localStream;
-        const status = document.getElementById('status');
-        const params = new URLSearchParams(location.search);
-        const roomId = params.get('id');
+if(roomId) entrarComoEspectador(roomId);
 
-        if(roomId){
-            entrarComoEspectador(roomId);
-        } else {
-            status.innerText = "Listo para prender";
-        }
+async function prender(){
+ const alias=document.getElementById('alias').value.trim();
+ if(!alias){alert('Poné tu alias');return;}
+ statusEl.innerText="Prendiendo cámara...";
+ try{
+  localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:true});
+  document.getElementById('localVideo').srcObject=localStream;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('vivoUI').style.display='block';
+  await crearSala(alias);
+ }catch(e){alert(e.message); statusEl.innerText=e.message;}
+}
 
-        async function prender(){
-            const alias = document.getElementById('alias').value;
-            if(!alias){
-                alert('Poné tu alias');
-                return;
-            }
-            localStorage.setItem('mp_alias', alias);
-            status.innerText = "Prendiendo cámara...";
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('setup').style.display='none';
-                document.getElementById('vivoUI').style.display='block';
-                await crearSala(alias);
-            } catch(e) {
-                alert('No pude prender cámara: '+e.message);
-                status.innerText = 'Error: '+e.message;
-            }
-        }
+async function crearSala(alias){
+ const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now(),viewers:0});
+ const id=roomRef.id;
+ const link=location.origin+location.pathname+'?id='+id;
+ document.getElementById('shareLink').value=link;
+ document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;
+ statusEl.innerText="Vivo prendido ID:"+id;
+ pc=new RTCPeerConnection({iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]});
+ localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+ const caller=roomRef.collection('callerCandidates');
+ pc.onicecandidate=e=>{if(e.candidate) caller.add(e.candidate.toJSON());};
+ const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
+ await roomRef.update({offer:{type:offer.type,sdp:offer.sdp}});
+ roomRef.onSnapshot(snap=>{
+  const d=snap.data();
+  if(d&&!pc.currentRemoteDescription&&d.answer){
+   pc.setRemoteDescription(new RTCSessionDescription(d.answer));
+   statusEl.innerText="¡Alguien mirando!";
+  }
+  if(d&&d.viewers) document.getElementById('viewers').innerText=`👀 ${d.viewers} mirando`;
+ });
+ roomRef.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added') await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()));});});
+}
 
-        async function crearSala(alias){
-            status.innerText = "Conectando a Firebase...";
-            const roomRef = await db.collection('fugaz_vivo').add({alias, created: Date.now()});
-            const id = roomRef.id;
-            const link = location.origin + location.pathname + '?id=' + id;
-            document.getElementById('shareLink').value = link;
-            document.getElementById('qr').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;
-            status.innerText = "Vivo prendido - ID: "+id;
+async function entrarComoEspectador(id){
+ document.getElementById('setup').style.display='none';
+ document.getElementById('viewerUI').style.display='block';
+ const roomRef=db.collection('fugaz_vivo').doc(id);
+ const snap=await roomRef.get();
+ if(!snap.exists){document.getElementById('viewerStatus').innerText='Vivo apagado';return;}
+ const data=snap.data();
+ document.getElementById('mpLink').href='https://www.mercadopago.com.ar/home?alias='+encodeURIComponent(data.alias);
+ document.getElementById('viewerStatus').innerText='Conectado, cargando video...';
+ // contador
+ roomRef.update({viewers: firebase.firestore.FieldValue.increment(1)});
+ pc=new RTCPeerConnection({iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]});
+ remoteStream=new MediaStream();
+ const v=document.getElementById('remoteVideo');
+ v.srcObject=remoteStream;
+ pc.ontrack=e=>{
+  e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
+  document.getElementById('viewerStatus').innerText='¡EN VIVO!';
+  document.getElementById('playOverlay').style.display='block';
+  v.play().catch(()=>{});
+ };
+ const callee=roomRef.collection('calleeCandidates');
+ pc.onicecandidate=e=>{if(e.candidate) callee.add(e.candidate.toJSON());};
+ await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+ const answer=await pc.createAnswer(); await pc.setLocalDescription(answer);
+ await roomRef.update({answer:{type:answer.type,sdp:answer.sdp}});
+ roomRef.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added') await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()));});});
+}
 
-            pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-            
-            localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-
-            const callerCandidates = roomRef.collection('callerCandidates');
-            pc.onicecandidate = e => {
-                if(e.candidate) callerCandidates.add(e.candidate.toJSON());
-            };
-
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            
-            await roomRef.set({
-                alias,
-                created: Date.now(),
-                offer: { type: offer.type, sdp: offer.sdp }
-            }, { merge: true });
-
-            roomRef.onSnapshot(async snap => {
-                const data = snap.data();
-                if(!pc.currentRemoteDescription && data && data.answer){
-                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                    status.innerText = "¡Alguien mirando!";
-                }
-            });
-
-            roomRef.collection('calleeCandidates').onSnapshot(snap => {
-                snap.docChanges().forEach(async change => {
-                    if(change.type === 'added'){
-                        try {
-                            await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                        } catch(e) {
-                            console.error('Error al agregar candidato ICE:', e);
-                        }
-                    }
-                });
-            });
-        }
-
-        async function entrarComoEspectador(id){
-            document.getElementById('setup').style.display='none';
-            document.getElementById('viewerUI').style.display='block';
-
-            const roomRef = db.collection('fugaz_vivo').doc(id);
-            const roomSnap = await roomRef.get();
-
-            if(!roomSnap.exists){
-                document.getElementById('viewerStatus').innerText='Vivo no encontrado';
-                return;
-            }
-
-            const data = roomSnap.data();
-            document.getElementById('mpLink').href = 'https://mpago.la/'+data.alias.replace(/\s+/g,'');
-            document.getElementById('viewerStatus').innerText='Sala encontrada, conectando...';
-
-            pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-
-            pc.ontrack = e => {
-                const remoteVideo = document.getElementById('remoteVideo');
-                if(remoteVideo.srcObject !== e.streams[0]){
-                    remoteVideo.srcObject = e.streams[0];
-                    document.getElementById('viewerStatus').innerText='¡EN VIVO!';
-                }
-            };
-
-            const calleeCandidates = roomRef.collection('calleeCandidates');
-            pc.onicecandidate = e => {
-                if(e.candidate) calleeCandidates.add(e.candidate.toJSON());
-            };
-
-            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-
-            await roomRef.update({ answer: { type: answer.type, sdp: answer.sdp } });
-
-            roomRef.collection('callerCandidates').onSnapshot(snap => {
-                snap.docChanges().forEach(async change => {
-                    if(change.type === 'added'){
-                        try {
-                            await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                        } catch(e) {
-                            console.error('Error al agregar candidato ICE:', e);
-                        }
-                    }
-                });
-            });
-        }
-
-        function copiar(){
-            navigator.clipboard.writeText(document.getElementById('shareLink').value);
-            alert('Link copiado');
-        }
-    </script>
+function desbloquear(){
+ const v=document.getElementById('remoteVideo');
+ v.muted=false; v.play(); document.getElementById('playOverlay').style.display='none';
+}
+function copiar(){navigator.clipboard.writeText(document.getElementById('shareLink').value); alert('Copiado');}
+</script>
 </body>
 </html>
