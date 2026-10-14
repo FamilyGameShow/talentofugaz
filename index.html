@@ -7,52 +7,111 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
 body{background:#000;color:#fff;text-align:center;font-family:system-ui;padding:12px;margin:0}
-video{width:100%;max-width:400px;background:#111;border-radius:16px;border:2px solid #00f5d4;min-height:260px;object-fit:cover}
+video{width:100%;max-width:420px;background:#111;border-radius:16px;border:2px solid #00f5d4;min-height:260px;object-fit:cover}
 button{background:#00f5d4;color:#000;border:0;padding:12px 20px;border-radius:30px;font-weight:900;margin:5px;cursor:pointer}
-.box{background:#151515;padding:14px;border-radius:14px;max-width:420px;margin:12px auto;border:1px solid #222}
+button.sec{background:#222;color:#fff;border:1px solid #333}
+.box{background:#151515;padding:14px;border-radius:14px;max-width:440px;margin:12px auto;border:1px solid #222;text-align:left}
 #playOverlay{display:none;background:#00f5d4;color:#000;padding:14px;border-radius:10px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer}
-input,select{padding:10px;border-radius:20px;border:1px solid #333;background:#111;color:#fff}
+input{padding:12px;border-radius:20px;border:1px solid #333;background:#111;color:#fff;width:90%;margin:4px}
 .aviso{border:1px dashed #444;padding:8px;border-radius:10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .confirmado{background:#0e2a26;border:1px solid #00f5d4}
+.sala{border:1px solid #333;padding:10px;border-radius:12px;margin:10px 0;background:#111}
 </style>
 </head>
 <body>
-<h1 style="color:#00f5d4">FUGAZ</h1>
-<div id="setup"><input id="alias" placeholder="Tu alias MP"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button></div>
-<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiarLink()">Copiar Link</button><div id="qr"></div><p id="viewers">👀 0</p><div style="text-align:left;background:#0e2a26;padding:10px;border-radius:10px"><div>✅ Confirmado: <b id="total">$0</b></div><div>Tuyo 85%: <b id="tuyo">$0</b></div><div style="font-size:11px">Comisión: <span id="comision">$0</span></div><div id="lista"></div></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
-<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER</div><p id="viewerStatus"></p><div class="box"><h3 style="color:#00f5d4">Talento Fugaz</h3><p id="aliasShow" style="font-size:22px;font-weight:900"></p><button onclick="copiarYTransferir()" style="background:#fff;width:100%">📋 Copiar alias y abrir MP</button><div style="margin-top:10px;border-top:1px solid #333;padding-top:10px"><select id="monto"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()">Avisar que transferí</button><div id="misAvisos" style="margin-top:10px;font-size:11px;color:#aaa"></div></div></div></div>
+<h1 style="color:#00f5d4">TALENTO FUGAZ</h1>
+<div id="setup"><h3>Crear Show</h3><input id="nombreArtista" placeholder="Nombre artista Ej: Mago Juan"><input id="aliasArtista" placeholder="Alias MP del artista para pagarle 85%"><br><button onclick="prender()">🔴 PRENDER SHOW</button><p style="font-size:11px;color:#666">La plata entra a tu MP central. Al terminar le transferís 85% al alias del artista.</p><hr><button class="sec" onclick="abrirAdmin()">Abrir Panel Admin (solo vos)</button></div>
+
+<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><h3 id="nombreShow"></h3><p>Link público: <br><input id="shareLink" readonly><button onclick="copiarLink()">Copiar Link Público / QR</button></p><div id="qr"></div><p id="viewers">👀 0</p><p>Link artista (monitor): <br><input id="linkArtista" readonly><br><small>Pasale este al artista para que vea plata sin poder tocar nada</small></p><div style="background:#0e2a26;padding:10px;border-radius:10px"><div>💰 Total Confirmado: <b id="total">$0</b></div><div>🎤 Para Artista 85%: <b id="tuyo">$0</b> -> <span id="aliasDestino"></span></div><div>🏦 Tu comisión 15%: <b id="comision">$0</b></div><div>Pendiente por confirmar: <span id="pend">$0</span></div><div id="lista"></div></div></div><button onclick="finalizarShow()" style="background:#ff0055;color:#fff">Finalizar Show y ver liquidación</button></div>
+
+<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER</div><p id="viewerStatus"></p><div class="box" style="text-align:center"><h3 id="vNombre"></h3><p style="color:#00f5d4">Show en vivo - Talento Fugaz</p><p style="font-size:12px">Tu propina va a: <b id="centralAliasShow"></b><br>Todo seguro y verificado</p><button onclick="propina(500)">Dar $500</button><button onclick="propina(1000)">$1000</button><button onclick="propina(2000)">$2000</button><button onclick="propina(5000)">$5000</button><div style="margin-top:10px"><select id="monto"><option value="1000" selected>Monto libre</option><option value="500">$500</option><option value="2000">$2000</option><option value="3000">$3000</option><option value="10000">$10000</option></select></div><button onclick="propinaCustom()" style="background:#fff;width:100%">📋 Copiar alias y transferir</button><div id="misAvisos" style="margin-top:10px;font-size:11px"></div></div></div>
+
+<div id="artistaUI" style="display:none"><h3>Monitor Artista</h3><p id="aNombre"></p><div class="box"><div>💰 Confirmado: <b id="aTotal">$0</b></div><div>🎤 Tuyo 85%: <b id="aTuyo">$0</b></div><div>⏳ Pendiente verificación: <span id="aPend">$0</span></div><div id="aLista"></div></div><p style="font-size:11px;color:#666">Vos no tocás nada, el admin confirma. Al final te transfieren.</p></div>
+
+<div id="adminUI" style="display:none"><h3>ADMIN - Todos los vivos</h3><button onclick="location.reload()">Volver</button><div id="adminLista"></div></div>
+
 <script>
+const CENTRAL_ALIAS = "talento.fugaz.mp"; // <<<<< CAMBIA ESTO POR TU ALIAS REAL
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
-let localStream,pcs={},currentAlias="",currentRoomId=null,myViewerId=null;
+let localStream,pcs={},currentRoomId=null,myViewerId=null;
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-const roomIdParam=new URLSearchParams(location.search).get('id');
-if(roomIdParam){currentRoomId=roomIdParam;entrarComoEspectador(roomIdParam);}
+const params=new URLSearchParams(location.search);
+const roomId=params.get('id'), artistId=params.get('artista'), isAdmin=params.get('admin')==='fugaz2024';
+
+if(roomId) {currentRoomId=roomId; entrarComoEspectador(roomId);}
+if(artistId){currentRoomId=artistId; entrarComoArtista(artistId);}
+if(isAdmin){document.getElementById('setup').style.display='none';document.getElementById('adminUI').style.display='block';cargarAdmin();}
+
 function copiarLink(){const ta=document.createElement('textarea');ta.value=document.getElementById('shareLink').value;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Link copiado');}
-function copiarYTransferir(){
- const ta=document.createElement('textarea');ta.value=currentAlias;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
- // ESTO SI ABRE MP - no usa esquema bloqueado
- alert('Alias '+currentAlias+' copiado ✅\n\nSe abre Mercado Pago - andá a Transferir');
+function propina(monto){copiarYTransferir(monto);}
+function propinaCustom(){const m=document.getElementById('monto').value;copiarYTransferir(Number(m));}
+function copiarYTransferir(monto){
+ const ta=document.createElement('textarea');ta.value=CENTRAL_ALIAS;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+ alert(`Alias ${CENTRAL_ALIAS} copiado ✅\n\nMonto sugerido: $${monto}\n\nTe abro Mercado Pago. En CONCEPTO poné: FUGAZ-${currentRoomId.slice(0,4)} así lo identifico rápido.\n\nDespués volvé y tocá "Ya transferí".`);
  window.open('https://www.mercadopago.com.ar/home','_blank');
+ setTimeout(()=>{yaTransferi(monto);},500);
 }
-async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('alias');currentAlias=a;localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';crearSala(a);}
-async function crearSala(alias){
- const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now(),alias:alias});currentRoomId=roomRef.id;const link=location.origin+location.pathname+'?id='+roomRef.id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;
- roomRef.collection('viewers').onSnapshot(snap=>{document.getElementById('viewers').innerText='👀 '+snap.size+' mirando - '+new Date().toLocaleTimeString();for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};pc.setRemoteDescription(new RTCSessionDescription(d.offer)).then(()=>pc.createAnswer().then(a=>pc.setLocalDescription(a).then(()=>doc.ref.update({answer:{type:a.type,sdp:a.sdp}}))));doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type==='added')pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{});})});}}});
- roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let conf=0,html='';snap.forEach(doc=>{const d=doc.data();if(d.confirmado){conf+=Number(d.monto);html+=`<div class="aviso confirmado"><span>✅ $${d.monto}</span><span>Confirmado</span></div>`}else{html+=`<div class="aviso"><span>⏳ $${d.monto} por confirmar</span><span><button onclick="confirmar('${doc.id}')" style="padding:4px 8px;font-size:11px">✅</button><button onclick="rechazar('${doc.id}')" style="background:#400;color:#fff;padding:4px 8px">X</button></span></div>`}});document.getElementById('total').innerText='$'+conf;document.getElementById('tuyo').innerText='$'+Math.round(conf*0.85);document.getElementById('comision').innerText='$'+Math.round(conf*0.15);document.getElementById('lista').innerHTML=html;});
+async function prender(){
+ const nombre=document.getElementById('nombreArtista').value.trim();const aliasArt=document.getElementById('aliasArtista').value.trim();
+ if(!nombre||!aliasArt) return alert('Falta nombre y alias del artista');
+ localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;
+ document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';
+ const roomRef=await db.collection('fugaz_vivo_v2').add({nombreArtista:nombre,aliasArtista:aliasArt,centralAlias:CENTRAL_ALIAS,created:Date.now(),status:'vivo',totalConfirmado:0});
+ currentRoomId=roomRef.id;
+ const base=location.origin+location.pathname;
+ const linkPublico=base+'?id='+roomRef.id;
+ const linkArt=base+'?artista='+roomRef.id;
+ document.getElementById('shareLink').value=linkPublico;document.getElementById('linkArtista').value=linkArt;document.getElementById('nombreShow').innerText='Show: '+nombre;document.getElementById('aliasDestino').innerText=aliasArt;
+ document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(linkPublico)}"><br><small>QR para plaza</small>`;
+ roomRef.collection('viewers').onSnapshot(snap=>{document.getElementById('viewers').innerText='👀 '+snap.size+' mirando';for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};pc.setRemoteDescription(new RTCSessionDescription(d.offer)).then(()=>pc.createAnswer().then(a=>pc.setLocalDescription(a).then(()=>doc.ref.update({answer:{type:a.type,sdp:a.sdp}}))));doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type==='added')pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{});})});}}});
+ escucharPropinas(roomRef,'owner');
 }
-async function confirmar(id){await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).update({confirmado:true});}
-async function rechazar(id){if(confirm('Borrar?')) await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).delete();}
+function escucharPropinas(roomRef,role){
+ roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{
+   let conf=0,pend=0,html='';
+   snap.forEach(doc=>{
+     const d=doc.data();
+     if(d.confirmado){conf+=Number(d.monto);html+=`<div class="aviso confirmado"><span>✅ $${d.monto} ${d.viewer||''}</span><span>${new Date(d.ts).toLocaleTimeString()}</span></div>`}
+     else{pend+=Number(d.monto);if(role==='owner'||role==='admin'){html+=`<div class="aviso"><span>⏳ $${d.monto} - ${d.viewer||'anon'}</span><span><button onclick="confirmar('${roomRef.id}','${doc.id}')" style="padding:4px">✅ Confirmar</button><button onclick="rechazar('${roomRef.id}','${doc.id}')" style="background:#400;color:#fff;padding:4px">X</button></span></div>`}else{html+=`<div class="aviso"><span>⏳ $${d.monto} esperando verificación admin</span></div>`}}
+   });
+   if(role==='owner'){document.getElementById('total').innerText='$'+conf;document.getElementById('tuyo').innerText='$'+Math.round(conf*0.85);document.getElementById('comision').innerText='$'+Math.round(conf*0.15);document.getElementById('pend').innerText='$'+pend;document.getElementById('lista').innerHTML=html;}
+   if(role==='artista'){document.getElementById('aTotal').innerText='$'+conf;document.getElementById('aTuyo').innerText='$'+Math.round(conf*0.85);document.getElementById('aPend').innerText='$'+pend;document.getElementById('aLista').innerHTML=html;}
+ });
+}
+async function confirmar(roomId,propId){await db.collection('fugaz_vivo_v2').doc(roomId).collection('propinas').doc(propId).update({confirmado:true,confirmadoPor:'admin',confirmadoAt:Date.now()});}
+async function rechazar(roomId,propId){if(confirm('Borrar aviso trucho?')) await db.collection('fugaz_vivo_v2').doc(roomId).collection('propinas').doc(propId).delete();}
 async function entrarComoEspectador(id){
- document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo').doc(id);const snap=await roomRef.get();if(!snap.exists) return;currentAlias=snap.data().alias;document.getElementById('aliasShow').innerText=currentAlias;
+ document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo_v2').doc(id);const snap=await roomRef.get();if(!snap.exists) return;document.getElementById('vNombre').innerText=snap.data().nombreArtista;document.getElementById('centralAliasShow').innerText=CENTRAL_ALIAS;
  const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=roomRef.collection('viewers').doc();myViewerId=viewerDoc.id;pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type==='added')pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{});})});
- // Si el espectador cierra, se borra a los 5 seg
- window.addEventListener('pagehide',()=>{viewerDoc.delete();});
- // El espectador ve su propio estado
- roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let html='Mis avisos:<br>';snap.forEach(d=>{const data=d.data();if(Date.now()-data.ts<600000) html+=data.confirmado?`✅ $${data.monto} confirmado por artista<br>`: `⏳ $${data.monto} esperando confirmación<br>`;});document.getElementById('misAvisos').innerHTML=html;});
+ roomRef.collection('propinas').orderBy('ts','desc').limit(5).onSnapshot(snap=>{let h='Mis últimos avisos:<br>';snap.forEach(d=>{const data=d.data();if(data.viewer===myViewerId) h+=data.confirmado?`✅ $${data.monto} verificado<br>`: `⏳ $${data.monto} esperando verificación del admin<br>`;});document.getElementById('misAvisos').innerHTML=h;});
 }
+async function entrarComoArtista(id){
+ document.getElementById('setup').style.display='none';document.getElementById('artistaUI').style.display='block';const roomRef=db.collection('fugaz_vivo_v2').doc(id);const snap=await roomRef.get();document.getElementById('aNombre').innerText='Show: '+snap.data().nombreArtista+' - Cobrás en: '+snap.data().aliasArtista;escucharPropinas(roomRef,'artista');
+}
+async function yaTransferi(monto){const id=currentRoomId;await db.collection('fugaz_vivo_v2').doc(id).collection('propinas').add({monto:Number(monto),ts:Date.now(),confirmado:false,viewer:myViewerId});}
 function desbloquear(){const v=document.getElementById('remoteVideo');v.muted=false;v.play().then(()=>document.getElementById('playOverlay').style.display='none');}
-async function yaTransferi(){const monto=document.getElementById('monto').value;const id=currentRoomId;await db.collection('fugaz_vivo').doc(id).collection('propinas').add({monto:Number(monto),ts:Date.now(),confirmado:false,viewer:myViewerId});alert('Avisaste $'+monto);}
+function abrirAdmin(){const pass=prompt('Clave admin');if(pass==='fugaz2024'){location.href=location.pathname+'?admin=fugaz2024';}else alert('no');}
+function cargarAdmin(){
+ db.collection('fugaz_vivo_v2').orderBy('created','desc').limit(20).onSnapshot(snap=>{
+   let html='';snap.forEach(doc=>{
+     const d=doc.data();html+=`<div class="sala"><b>${d.nombreArtista}</b> - ${d.status} - Alias destino: ${d.aliasArtista}<br>Links: <a href="${location.origin+location.pathname+'?id='+doc.id}" target="_blank">Público</a> | <a href="${location.origin+location.pathname+'?artista='+doc.id}" target="_blank">Artista</a><br><div id="admin-${doc.id}">cargando...</div></div>`;
+     setTimeout(()=>{escucharAdminSala(doc.id);},200);
+   });document.getElementById('adminLista').innerHTML=html;
+ });
+}
+function escucharAdminSala(roomId){
+ const ref=db.collection('fugaz_vivo_v2').doc(roomId);
+ ref.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{
+   let conf=0,pend=0,html='';snap.forEach(doc=>{
+     const d=doc.data();if(d.confirmado) conf+=d.monto; else pend+=d.monto;
+     if(!d.confirmado) html+=`<div class="aviso"><span>⏳ $${d.monto}</span><button onclick="confirmar('${roomId}','${doc.id}')">✅</button><button onclick="rechazar('${roomId}','${doc.id}')" style="background:#400;color:#fff">X</button></div>`;
+   });
+   const el=document.getElementById('admin-'+roomId);if(el) el.innerHTML=`Confirmado: $${conf} | Pend: $${pend} | Artista 85%: $${Math.round(conf*0.85)} | Tuyo: $${Math.round(conf*0.15)}<br>${html}<button onclick="finalizarShowId('${roomId}')" style="background:#ff0055;color:#fff">Liquidar y cerrar</button>`;
+ });
+}
+async function finalizarShow(){if(confirm('Cerrar show?')){const ref=db.collection('fugaz_vivo_v2').doc(currentRoomId);const snap=await ref.collection('propinas').where('confirmado','==',true).get();let tot=0;snap.forEach(d=>tot+=d.data().monto);alert(`LIQUIDACIÓN\nTotal: $${tot}\nPara artista (${document.getElementById('aliasDestino').innerText}): $${Math.round(tot*0.85)}\nTu comisión: $${Math.round(tot*0.15)}\n\nAhora transferí manualmente al artista.`);await ref.update({status:'finalizado',totalFinal:tot});location.reload();}}
+async function finalizarShowId(id){const ref=db.collection('fugaz_vivo_v2').doc(id);const s=await ref.get();const snap=await ref.collection('propinas').where('confirmado','==',true).get();let tot=0;snap.forEach(d=>tot+=d.data().monto);alert(`Liquidar ${s.data().nombreArtista}\nTotal $${tot}\nArtista ${s.data().aliasArtista} -> $${Math.round(tot*0.85)}\nVos -> $${Math.round(tot*0.15)}`);await ref.update({status:'finalizado'});}
 </script>
 </body>
 </html>
