@@ -9,60 +9,50 @@
 body{background:#000;color:#fff;text-align:center;font-family:system-ui;padding:12px;margin:0}
 video{width:100%;max-width:400px;background:#111;border-radius:16px;border:2px solid #00f5d4;min-height:260px;object-fit:cover}
 button{background:#00f5d4;color:#000;border:0;padding:12px 20px;border-radius:30px;font-weight:900;margin:5px;cursor:pointer}
-button.sec{background:#222;color:#fff;border:1px solid #333}
 .box{background:#151515;padding:14px;border-radius:14px;max-width:420px;margin:12px auto;border:1px solid #222}
 #playOverlay{display:none;background:#00f5d4;color:#000;padding:14px;border-radius:10px;font-weight:900;margin:10px auto;max-width:420px;cursor:pointer}
 input,select{padding:10px;border-radius:20px;border:1px solid #333;background:#111;color:#fff}
-.aviso{background:#1a1a1a;border:1px dashed #444;padding:8px;border-radius:10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.confirmado{background:#0e2a26;border:1px solid #00f5d488}
+.aviso{border:1px dashed #444;padding:8px;border-radius:10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.confirmado{background:#0e2a26;border:1px solid #00f5d4}
 </style>
 </head>
 <body>
-<h1 id="tit" style="color:#00f5d4">FUGAZ</h1>
-<div id="status" style="color:#00f5d4;font-size:12px"></div>
+<h1 style="color:#00f5d4">FUGAZ</h1>
 <div id="setup"><input id="alias" placeholder="Tu alias MP"><br><br><button onclick="prender()">🔴 PRENDER VIVO</button></div>
-<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiarLink()">Copiar Link</button><div id="qr"></div><p id="viewers">👀 0</p><div style="text-align:left;background:#0e2a26;padding:10px;border-radius:10px"><div>✅ Confirmado: <b id="total">$0</b></div><div>Tuyo 85%: <b id="tuyo">$0</b></div><div style="font-size:11px">Comisión: <span id="comision">$0</span> | Avisos sin confirmar: <span id="pend">$0</span></div><div id="lista" style="margin-top:10px"></div></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
-<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER</div><p id="viewerStatus"></p><div class="box"><h3 style="color:#00f5d4;margin:2px">Talento Fugaz</h3><p id="aliasShow" style="font-size:22px;font-weight:900"></p><button onclick="copiarYTransferir()" style="background:#fff;width:100%">📋 Copiar alias y transferir</button><div style="margin-top:10px;border-top:1px solid #333;padding-top:10px"><select id="monto"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()">Avisar que transferí</button><p style="font-size:10px;color:#666">Avisa al artista. El artista confirma cuando le llega en MP.</p></div></div></div>
+<div id="vivoUI" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="box"><input id="shareLink" readonly style="width:90%"><br><button onclick="copiarLink()">Copiar Link</button><div id="qr"></div><p id="viewers">👀 0</p><div style="text-align:left;background:#0e2a26;padding:10px;border-radius:10px"><div>✅ Confirmado: <b id="total">$0</b></div><div>Tuyo 85%: <b id="tuyo">$0</b></div><div style="font-size:11px">Comisión: <span id="comision">$0</span></div><div id="lista"></div></div></div><button onclick="location.reload()" style="background:#333;color:#fff">Apagar</button></div>
+<div id="viewerUI" style="display:none"><video id="remoteVideo" autoplay playsinline muted></video><div id="playOverlay" onclick="desbloquear()">👆 TOCÁ PARA VER</div><p id="viewerStatus"></p><div class="box"><h3 style="color:#00f5d4">Talento Fugaz</h3><p id="aliasShow" style="font-size:22px;font-weight:900"></p><button onclick="copiarYTransferir()" style="background:#fff;width:100%">📋 Copiar alias y abrir MP</button><div style="margin-top:10px;border-top:1px solid #333;padding-top:10px"><select id="monto"><option value="500">$500</option><option value="1000" selected>$1000</option><option value="2000">$2000</option><option value="5000">$5000</option></select><button onclick="yaTransferi()">Avisar que transferí</button><div id="misAvisos" style="margin-top:10px;font-size:11px;color:#aaa"></div></div></div></div>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
-let localStream,pcs={},currentAlias="",currentRoomId=null,myViewerDocId=null;
+let localStream,pcs={},currentAlias="",currentRoomId=null,myViewerId=null;
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
 const roomIdParam=new URLSearchParams(location.search).get('id');
-if(roomIdParam){document.getElementById('tit').innerText='Talento Fugaz';currentRoomId=roomIdParam;entrarComoEspectador(roomIdParam);}
-
+if(roomIdParam){currentRoomId=roomIdParam;entrarComoEspectador(roomIdParam);}
 function copiarLink(){const ta=document.createElement('textarea');ta.value=document.getElementById('shareLink').value;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Link copiado');}
 function copiarYTransferir(){
  const ta=document.createElement('textarea');ta.value=currentAlias;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
- alert('Alias '+currentAlias+' copiado ✅ - Te abro Mercado Pago');
- window.location.href='mercadopago://';
+ // ESTO SI ABRE MP - no usa esquema bloqueado
+ alert('Alias '+currentAlias+' copiado ✅\n\nSe abre Mercado Pago - andá a Transferir');
+ window.open('https://www.mercadopago.com.ar/home','_blank');
 }
-
-async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('alias');currentAlias=a;localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';document.getElementById('tit').innerText='FUGAZ - Panel';crearSala(a);}
+async function prender(){const a=document.getElementById('alias').value.trim();if(!a) return alert('alias');currentAlias=a;localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;document.getElementById('setup').style.display='none';document.getElementById('vivoUI').style.display='block';crearSala(a);}
 async function crearSala(alias){
- const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now()});currentRoomId=roomRef.id;const link=location.origin+location.pathname+'?id='+roomRef.id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;
- // Limpieza de viewers viejos
- const old = await roomRef.collection('viewers').where('joined','<',Date.now()-600000).get(); old.forEach(d=>d.ref.delete());
- roomRef.collection('viewers').onSnapshot(async snap=>{document.getElementById('viewers').innerText='👀 '+snap.size+' mirando';for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};await pc.setRemoteDescription(new RTCSessionDescription(d.offer));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await doc.ref.update({answer:{type:ans.type,sdp:ans.sdp}});doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});}}});
- // Propinas con confirmación
- roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{
-   let totalConf=0,totalPend=0,html='';
-   snap.forEach(doc=>{
-     const d=doc.data();
-     if(d.confirmado){ totalConf+=Number(d.monto); html+=`<div class="aviso confirmado"><span>✅ $${d.monto} - ${new Date(d.ts).toLocaleTimeString()}</span><span>OK</span></div>`;}
-     else{ totalPend+=Number(d.monto); html+=`<div class="aviso"><span>⏳ $${d.monto} dice que transfirió</span><button onclick="confirmar('${doc.id}',${d.monto})" style="padding:4px 8px;font-size:11px">Confirmar</button><button onclick="rechazar('${doc.id}')" style="background:#400;color:#fff;padding:4px 8px;font-size:11px">X</button></div>`;}
-   });
-   document.getElementById('total').innerText='$'+totalConf;document.getElementById('tuyo').innerText='$'+Math.round(totalConf*0.85);document.getElementById('comision').innerText='$'+Math.round(totalConf*0.15);document.getElementById('pend').innerText='$'+totalPend;document.getElementById('lista').innerHTML=html||'Sin avisos';
- });
+ const roomRef=await db.collection('fugaz_vivo').add({alias,created:Date.now(),alias:alias});currentRoomId=roomRef.id;const link=location.origin+location.pathname+'?id='+roomRef.id;document.getElementById('shareLink').value=link;document.getElementById('qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}">`;
+ roomRef.collection('viewers').onSnapshot(snap=>{document.getElementById('viewers').innerText='👀 '+snap.size+' mirando - '+new Date().toLocaleTimeString();for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};pc.setRemoteDescription(new RTCSessionDescription(d.offer)).then(()=>pc.createAnswer().then(a=>pc.setLocalDescription(a).then(()=>doc.ref.update({answer:{type:a.type,sdp:a.sdp}}))));doc.ref.collection('calleeCandidates').onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type==='added')pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{});})});}}});
+ roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let conf=0,html='';snap.forEach(doc=>{const d=doc.data();if(d.confirmado){conf+=Number(d.monto);html+=`<div class="aviso confirmado"><span>✅ $${d.monto}</span><span>Confirmado</span></div>`}else{html+=`<div class="aviso"><span>⏳ $${d.monto} por confirmar</span><span><button onclick="confirmar('${doc.id}')" style="padding:4px 8px;font-size:11px">✅</button><button onclick="rechazar('${doc.id}')" style="background:#400;color:#fff;padding:4px 8px">X</button></span></div>`}});document.getElementById('total').innerText='$'+conf;document.getElementById('tuyo').innerText='$'+Math.round(conf*0.85);document.getElementById('comision').innerText='$'+Math.round(conf*0.15);document.getElementById('lista').innerHTML=html;});
 }
-async function confirmar(id,monto){await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).update({confirmado:true});}
-async function rechazar(id){if(confirm('Borrar aviso trucho?')) await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).delete();}
-
+async function confirmar(id){await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).update({confirmado:true});}
+async function rechazar(id){if(confirm('Borrar?')) await db.collection('fugaz_vivo').doc(currentRoomId).collection('propinas').doc(id).delete();}
 async function entrarComoEspectador(id){
- document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo').doc(id);const snap=await roomRef.get();if(!snap.exists){document.getElementById('viewerStatus').innerText='Terminado';return;}currentAlias=snap.data().alias;document.getElementById('aliasShow').innerText=currentAlias;
- const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=roomRef.collection('viewers').doc();myViewerDocId=viewerDoc.id;pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(async c=>{if(c.type==='added')try{await pc.addIceCandidate(new RTCIceCandidate(c.doc.data()))}catch{}})});window.addEventListener('beforeunload',()=>{viewerDoc.delete();});}
+ document.getElementById('setup').style.display='none';document.getElementById('viewerUI').style.display='block';const roomRef=db.collection('fugaz_vivo').doc(id);const snap=await roomRef.get();if(!snap.exists) return;currentAlias=snap.data().alias;document.getElementById('aliasShow').innerText=currentAlias;
+ const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));document.getElementById('viewerStatus').innerText='EN VIVO';document.getElementById('playOverlay').style.display='block';v.play().catch(()=>{});};const viewerDoc=roomRef.collection('viewers').doc();myViewerId=viewerDoc.id;pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp},joined:Date.now()});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});viewerDoc.collection('callerCandidates').onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type==='added')pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{});})});
+ // Si el espectador cierra, se borra a los 5 seg
+ window.addEventListener('pagehide',()=>{viewerDoc.delete();});
+ // El espectador ve su propio estado
+ roomRef.collection('propinas').orderBy('ts','desc').onSnapshot(snap=>{let html='Mis avisos:<br>';snap.forEach(d=>{const data=d.data();if(Date.now()-data.ts<600000) html+=data.confirmado?`✅ $${data.monto} confirmado por artista<br>`: `⏳ $${data.monto} esperando confirmación<br>`;});document.getElementById('misAvisos').innerHTML=html;});
+}
 function desbloquear(){const v=document.getElementById('remoteVideo');v.muted=false;v.play().then(()=>document.getElementById('playOverlay').style.display='none');}
-async function yaTransferi(){const monto=document.getElementById('monto').value;const id=currentRoomId||new URLSearchParams(location.search).get('id');await db.collection('fugaz_vivo').doc(id).collection('propinas').add({monto:Number(monto),ts:Date.now(),confirmado:false});alert('Avisaste $'+monto+' - El artista lo confirma cuando le llegue en MP');}
+async function yaTransferi(){const monto=document.getElementById('monto').value;const id=currentRoomId;await db.collection('fugaz_vivo').doc(id).collection('propinas').add({monto:Number(monto),ts:Date.now(),confirmado:false,viewer:myViewerId});alert('Avisaste $'+monto);}
 </script>
 </body>
 </html>
