@@ -2,113 +2,128 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Talento Fugaz v10.1</title>
+<title>Talento Fugaz v11 - Final</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-body{background:#000;color:#fff;font-family:system-ui;padding:10px;text-align:center;margin:0}
-.box{background:#151515;padding:16px;border-radius:16px;max-width:460px;margin:12px auto;border:1px solid #222;text-align:left}
-input{padding:14px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;width:92%;margin:7px 0;font-size:15px}
-button{background:#00f5d4;color:#000;border:0;padding:13px 20px;border-radius:30px;font-weight:900;margin:5px;cursor:pointer}
+body{background:#000;color:#fff;font-family:system-ui;margin:0;padding:10px;text-align:center}
+.box{background:#151515;padding:14px;border-radius:16px;max-width:480px;margin:12px auto;border:1px solid #222;text-align:left}
+input{padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;width:92%;margin:6px 0}
+button{background:#00f5d4;color:#000;border:0;padding:11px 16px;border-radius:30px;font-weight:900;margin:4px;cursor:pointer}
 button.sec{background:#222;color:#fff;border:1px solid #444}
-.aliasBig{background:#fff;color:#000;padding:14px;border-radius:12px;font-size:22px;font-weight:900;text-align:center;margin:8px 0}
-video{width:100%;max-width:420px;border-radius:16px;border:2px solid #00f5d4;min-height:220px;object-fit:cover;background:#111}
+button.on{background:#00f5d4} button.off{background:#333;color:#666}
+.aliasBig{background:#fff;color:#000;padding:14px;border-radius:12px;font-size:20px;font-weight:900;text-align:center;margin:8px 0}
+#map{height:380px;border-radius:16px;border:2px solid #00f5d4}
+.tabs{display:flex;gap:6px;justify-content:center;margin:8px}
+.tabs button{font-size:11px;padding:8px 12px}
 </style>
 </head>
 <body>
-<h1 style="color:#00f5d4">TALENTO FUGAZ</h1>
+<h1 style="color:#00f5d4">TALENTO FUGAZ v11</h1>
 
 <div id="registro"><div class="box" style="text-align:center">
 <h3>Entrá en 10 segundos</h3><p id="refMsg" style="color:#00f5d4;font-size:12px"></p>
-<input id="rNombre" placeholder="Nombre artístico">
-<input id="rDni" placeholder="DNI">
-<input id="rAlias" placeholder="Tu alias MP">
-<button onclick="registrar()" style="width:100%;font-size:18px">CREAR MI QR PARA SIEMPRE →</button>
-<p style="font-size:11px;color:#666">Después completás lugar y horario para el afiche</p>
+<input id="rNombre" placeholder="Nombre artístico"><input id="rDni" placeholder="DNI"><input id="rAlias" placeholder="Tu alias MP">
+<button onclick="registrar()" style="width:100%">CREAR MI QR PARA SIEMPRE →</button>
 </div></div>
 
 <div id="dash" style="display:none"><div class="box">
-<h3 id="dBienvenida"></h3>
-<div style="text-align:center"><div id="dQr"></div><p style="word-break:break-all" id="dLink"></p>
-<button class="sec" onclick="copiarLink()">📋 Copiar link permanente</button></div>
+<h3 id="dBienvenida"></h3><div style="text-align:center"><div id="dQr"></div><p id="dLink" style="word-break:break-all;font-size:11px"></p></div>
 <p>Estado: <b id="dEstado"></b> - Queda: <b id="dTiempo"></b></p>
-<hr>
-<label>Datos básicos (editable)</label>
-<input id="dNombre"><input id="dDni"><input id="dAlias">
-<button onclick="guardarBasico()">Guardar datos</button>
-<hr>
-<label>Para el Afiche / Flyer (opcional)</label>
-<input id="dLugar" placeholder="Lugar: Plaza Moreno, calle 13 y 50">
-<input id="dHorario" placeholder="Fecha y hora: Sáb 19/10 17-20hs">
-<button onclick="generarPDF()" style="background:#fff;width:100%">📄 GENERAR AFICHE A4 CON QR</button>
-<hr>
-<h4>Pagar plataforma</h4><p>Transferí a: <b style="background:#fff;color:#000;padding:4px 8px;border-radius:6px">familygameshow</b></p>
-<button onclick="solicitarPlan(5000,1)">Ya pagué $5k - 1 hora</button><button onclick="solicitarPlan(10000,3)">Ya pagué $10k - 3 horas</button>
-<hr>
-<button onclick="prenderVivo()" style="width:100%">🔴 PRENDER VIVO (prueba 30min gratis)</button>
-<p id="dViewers" style="text-align:center">👀 0</p><video id="localVideo" autoplay muted playsinline></video>
-<div id="dDonaciones" style="font-size:11px"></div>
+<input id="dNombre" placeholder="Nombre"><input id="dDni" placeholder="DNI"><input id="dAlias" placeholder="Alias MP">
+<input id="dLugar" placeholder="Lugar para afiche"><input id="dHorario" placeholder="Fecha/hora para afiche">
+<div style="display:flex;gap:4px"><button onclick="guardarBasico()">Guardar</button><button onclick="generarPDF()" class="sec">📄 Afiche</button></div>
+<hr><div id="pagoBox"></div>
+<hr><button onclick="prenderVivo()" style="width:100%">🔴 PRENDER VIVO</button><p id="dViewers" style="text-align:center">👀 0</p><video id="localVideo" autoplay muted playsinline style="width:100%;border-radius:12px;background:#111"></video>
+<div id="dReservaBox"></div>
 </div></div>
 
-<div id="publico" style="display:none"><div class="box" style="text-align:center">
-<h2 id="pNombre"></h2><p id="pLugar"></p><p id="pHorario" style="color:#aaa"></p>
-<video id="remoteVideo" autoplay playsinline muted></video><p id="pStatus"></p>
-<div class="aliasBig" id="pAlias"></div><button onclick="copiarAliasPub()" style="width:100%">📋 COPIAR ALIAS</button>
-<div><button onclick="elegirMontoPub(500)">$500</button><button onclick="elegirMontoPub(1000)">$1000</button><button onclick="elegirMontoPub(2000)">$2000</button></div>
-<button onclick="avisarDonacion()" style="background:#fff;width:100%;margin-top:8px">✅ YA TRANSFERÍ</button>
-</div></div>
+<div id="publico" style="display:none">
+<div class="tabs"><button onclick="showPub('vivo')">Vivo</button><button onclick="showPub('mapa')" id="btnMapa">🗺️ Mapa</button></div>
+<div id="pubVivo"><div class="box" style="text-align:center"><h2 id="pNombre"></h2><p id="pLugar"></p><video id="remoteVideo" autoplay playsinline muted style="width:100%;border-radius:12px;background:#111;min-height:200px"></video><div class="aliasBig" id="pAlias"></div><button onclick="elegirMontoPub(1000)">$1000</button><button onclick="elegirMontoPub(2000)">$2000</button><button onclick="avisarDonacion()" style="background:#fff;width:100%">✅ YA TRANSFERÍ</button></div></div>
+<div id="pubMapa" style="display:none"><div class="box"><div id="map"></div><div id="listaPuntos" style="font-size:12px;margin-top:8px"></div></div></div>
+</div>
 
-<div id="admin" style="display:none"><h3>ADMIN seba508</h3><div class="box"><table id="adminTable" style="width:100%;font-size:11px"></table></div><div id="adminNotif"></div></div>
+<div id="admin" style="display:none">
+<div class="tabs"><button onclick="showAdmin('artistas')">Artistas</button><button onclick="showAdmin('config')">Config</button><button onclick="showAdmin('puntos')">Puntos Mapa</button></div>
+<div id="adminArtistas" class="box"><table id="adminTable" style="width:100%;font-size:11px"></table><div id="adminNotif"></div></div>
+<div id="adminConfig" class="box" style="display:none">
+<h3>Configuración en vivo</h3>
+<p>Minutos gratis: <b id="cfgMin"></b> <button onclick="setTrial(20)">20</button><button onclick="setTrial(30)">30</button></p>
+<p>Precios: $ <input id="cfgP1" style="width:60px" placeholder="5000"> 1h / $ <input id="cfgP3" style="width:60px" placeholder="10000"> 3h <button onclick="setPrecios()">Guardar precios</button></p>
+<p>Mapa: <button id="bMapa" onclick="toggle('mapEnabled')"></button></p>
+<p>Ranking: <button id="bRank" onclick="toggle('rankingEnabled')"></button></p>
+<p>Fichas espectador: <button id="bFichas" onclick="toggle('fichasEnabled')"></button></p>
+<p style="font-size:10px;color:#888">Todo esto se guarda en Firebase, no tenés que subir html de nuevo.</p>
+</div>
+<div id="adminPuntos" class="box" style="display:none">
+<h3>Crear punto de show</h3><input id="ptNombre" placeholder="Nombre: Plaza Moreno 12 y 50"><input id="ptLat" placeholder="Lat: -34.9205"><input id="ptLng" placeholder="Lng: -57.9536"><input id="ptDesc" placeholder="Desc: Esquina de la muni"><button onclick="crearPunto()">+ Crear punto</button>
+<div id="listaPuntosAdmin" style="font-size:11px;margin-top:10px"></div>
+<p style="font-size:10px">Tip: Andá a Google Maps, clic derecho en el lugar, copiar lat/lng</p>
+</div>
+</div>
 
 <script>
 const CENTRAL_ALIAS="familygameshow";const ADMIN_CLAVE="seba508";
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-let currentSlug=null,localStream,pcs={},montoSel=0;
+let currentSlug=null,localStream,config={},map,markers=[];
 const params=new URLSearchParams(location.search);
 const u=params.get('u'), ref=params.get('ref'), admin=params.get('admin'), dash=params.get('dashboard');
+
+async function loadConfig(){
+ const snap=await db.collection('fugaz_config').doc('global').get();
+ if(!snap.exists){config={trialMinutes:30,mapEnabled:false,rankingEnabled:false,fichasEnabled:false,price1h:5000,price3h:10000};await db.collection('fugaz_config').doc('global').set(config);} else config=snap.data();
+ db.collection('fugaz_config').doc('global').onSnapshot(s=>{config=s.data();renderConfig();renderPagos();});
+}
+loadConfig();
+
+function makeSlug(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20);}
+
+async function registrar(){
+ const nombre=document.getElementById('rNombre').value.trim();const dni=document.getElementById('rDni').value.trim();const alias=document.getElementById('rAlias').value.trim();
+ if(!nombre||!dni||!alias) return alert('Faltan datos');
+ let base=makeSlug(nombre);let slug=base;let i=1;while((await db.collection('fugaz_artistas_v10').doc(slug).get()).exists){slug=base+'-'+i;i++;}
+ await db.collection('fugaz_artistas_v10').doc(slug).set({nombreArtistico:nombre,dni:dni,aliasMP:alias,slug:slug,lugar:'',horario:'',referidoPor:ref||'directo',creado:Date.now(),estado:'prueba',habilitadoHasta:Date.now()+config.trialMinutes*60*1000,enVivo:false});
+ location.href=location.pathname+'?dashboard='+slug;
+}
+
 if(admin===ADMIN_CLAVE){document.getElementById('registro').style.display='none';document.getElementById('admin').style.display='block';cargarAdmin();}
 else if(u){document.getElementById('registro').style.display='none';document.getElementById('publico').style.display='block';abrirPublico(u);}
 else if(dash){document.getElementById('registro').style.display='none';document.getElementById('dash').style.display='block';abrirDash(dash);}
 else if(ref) document.getElementById('refMsg').innerText='Venís por: '+ref;
 
-function makeSlug(str){return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20);}
-
-async function registrar(){
- const nombre=document.getElementById('rNombre').value.trim();const dni=document.getElementById('rDni').value.trim();const alias=document.getElementById('rAlias').value.trim();
- if(!nombre||!dni||!alias) return alert('Poné nombre, dni y alias');
- let base=makeSlug(nombre);let slug=base;let i=1;while((await db.collection('fugaz_artistas_v10').doc(slug).get()).exists){slug=base+'-'+i;i++;if(i>10) slug=base+'-'+Date.now();}
- await db.collection('fugaz_artistas_v10').doc(slug).set({nombreArtistico:nombre,dni:dni,aliasMP:alias,slug:slug,lugar:'',horario:'',referidoPor:ref||'directo',creado:Date.now(),estado:'prueba',habilitadoHasta:Date.now()+30*60*1000,enVivo:false});
- location.href=location.pathname+'?dashboard='+slug;
-}
-async function abrirDash(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();if(!snap.exists) return;const d=snap.data();
- document.getElementById('dBienvenida').innerText='Hola '+d.nombreArtistico+' 👋';document.getElementById('dLink').innerText=location.origin+location.pathname+'?u='+slug;
- document.getElementById('dQr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(location.origin+location.pathname+'?u='+slug)}">`;
- document.getElementById('dNombre').value=d.nombreArtistico;document.getElementById('dDni').value=d.dni;document.getElementById('dAlias').value=d.aliasMP;document.getElementById('dLugar').value=d.lugar||'';document.getElementById('dHorario').value=d.horario||'';
- actualizarEstado(d);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.exists) actualizarEstado(s.data());});
-}
+async function abrirDash(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();const d=snap.data();document.getElementById('dBienvenida').innerText='Hola '+d.nombreArtistico;document.getElementById('dLink').innerText=location.origin+location.pathname+'?u='+slug;document.getElementById('dQr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(location.origin+location.pathname+'?u='+slug)}">`;document.getElementById('dNombre').value=d.nombreArtistico;document.getElementById('dDni').value=d.dni;document.getElementById('dAlias').value=d.aliasMP;document.getElementById('dLugar').value=d.lugar||'';document.getElementById('dHorario').value=d.horario||'';renderPagos();actualizarEstado(d);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.exists) actualizarEstado(s.data());});cargarPuntosParaReserva();}
+function renderPagos(){const box=document.getElementById('pagoBox');if(!box) return;box.innerHTML=`Transferí a <b style="background:#fff;color:#000;padding:2px 6px;border-radius:6px">${CENTRAL_ALIAS}</b><br><button onclick="solicitarPlan(${config.price1h||5000},1)">Ya pagué $${config.price1h||5000} - 1h</button><button onclick="solicitarPlan(${config.price3h||10000},3)">Ya pagué $${config.price3h||10000} - 3h</button>`;}
 function actualizarEstado(d){document.getElementById('dEstado').innerText=d.estado;document.getElementById('dTiempo').innerText=Math.max(0,Math.floor((d.habilitadoHasta-Date.now())/60000))+' min';}
 async function guardarBasico(){await db.collection('fugaz_artistas_v10').doc(currentSlug).update({nombreArtistico:document.getElementById('dNombre').value.trim(),dni:document.getElementById('dDni').value.trim(),aliasMP:document.getElementById('dAlias').value.trim(),lugar:document.getElementById('dLugar').value.trim(),horario:document.getElementById('dHorario').value.trim()});alert('Guardado');}
-function copiarLink(){navigator.clipboard.writeText(document.getElementById('dLink').innerText);alert('Link copiado');}
-async function generarPDF(){
- const {jsPDF}=window.jspdf;const doc=new jsPDF();const snap=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();const d=snap.data();
- const lugar=document.getElementById('dLugar').value.trim();const horario=document.getElementById('dHorario').value.trim();
- await db.collection('fugaz_artistas_v10').doc(currentSlug).update({lugar:lugar,horario:horario});
- doc.setFontSize(28);doc.text('TALENTO FUGAZ',20,20);doc.setFontSize(22);doc.text(d.nombreArtistico,20,35);doc.setFontSize(13);if(lugar) doc.text('Lugar: '+lugar,20,45);if(horario) doc.text('Cuando: '+horario,20,52);doc.text('Escanea para ver el vivo y colaborar',20,62);
- const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(location.origin+location.pathname+'?u='+currentSlug)}`;
- const img=await fetch(qrUrl).then(r=>r.blob()).then(b=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);}));doc.addImage(img,'PNG',20,70,160,160);doc.text('Alias: '+d.aliasMP,20,240);doc.save('Afiche-'+currentSlug+'.pdf');
-}
+async function generarPDF(){const {jsPDF}=window.jspdf;const doc=new jsPDF();const snap=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();const d=snap.data();doc.setFillColor(10,10,10);doc.rect(0,0,210,297,'F');doc.setTextColor(0,245,212);doc.setFontSize(28);doc.text('TALENTO FUGAZ',20,20);doc.setTextColor(255,255,255);doc.setFontSize(20);doc.text(d.nombreArtistico,20,35);doc.setFontSize(12);doc.text('Lugar: '+(document.getElementById('dLugar').value||''),20,45);doc.text('Cuando: '+(document.getElementById('dHorario').value||''),20,52);const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(location.origin+location.pathname+'?u='+currentSlug)}`;const img=await fetch(qrUrl).then(r=>r.blob()).then(b=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);}));doc.addImage(img,'PNG',20,65,150,150);doc.text('Alias: '+d.aliasMP,20,225);doc.save('Afiche-'+currentSlug+'.pdf');}
 async function prenderVivo(){const s=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();if(Date.now()>s.data().habilitadoHasta) return alert('Vencido');localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;await db.collection('fugaz_artistas_v10').doc(currentSlug).update({enVivo:true});db.collection('fugaz_artistas_v10').doc(currentSlug).collection('viewers').onSnapshot(snap=>{document.getElementById('dViewers').innerText='👀 '+snap.size;});}
-async function solicitarPlan(m,d){await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('pagosPlataforma').add({monto:m,horas:d,ts:Date.now(),estado:'pendiente'});alert('Avisado, transferí a '+CENTRAL_ALIAS);}
-async function abrirPublico(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();const d=snap.data();document.getElementById('pNombre').innerText=d.nombreArtistico;document.getElementById('pLugar').innerText=d.lugar||'';document.getElementById('pHorario').innerText=d.horario||'';document.getElementById('pAlias').innerText=d.aliasMP;if(d.enVivo) conectarViewer(slug);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.data().enVivo) conectarViewer(slug);});}
+async function solicitarPlan(m,h){await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('pagosPlataforma').add({monto:m,horas:h,ts:Date.now(),estado:'pendiente'});alert('Avisado a admin');}
+
+async function abrirPublico(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();const d=snap.data();document.getElementById('pNombre').innerText=d.nombreArtistico;document.getElementById('pLugar').innerText=d.lugar||'';document.getElementById('pAlias').innerText=d.aliasMP;if(!config.mapEnabled) document.getElementById('btnMapa').style.display='none';if(d.enVivo) conectarViewer(slug);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.data().enVivo) conectarViewer(slug);});initMapPublic();}
+function showPub(t){document.getElementById('pubVivo').style.display=t==='vivo'?'block':'none';document.getElementById('pubMapa').style.display=t==='mapa'?'block':'none';if(t==='mapa') setTimeout(()=>map.invalidateSize(),200);}
 async function conectarViewer(slug){const refDoc=db.collection('fugaz_artistas_v10').doc(slug);const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();document.getElementById('remoteVideo').srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));};const viewerDoc=refDoc.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp}});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});}
-function copiarAliasPub(){navigator.clipboard.writeText(document.getElementById('pAlias').innerText);alert('Alias copiado');}
-function elegirMontoPub(m){montoSel=m;}
-async function avisarDonacion(){if(!montoSel) return alert('Elegí monto');await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('donaciones').add({monto:montoSel,ts:Date.now()});alert('Gracias!');}
-function cargarAdmin(){db.collection('fugaz_artistas_v10').orderBy('creado','desc').onSnapshot(snap=>{let h='<tr><th>Artista</th><th>DNI</th><th>Alias</th><th>Slug</th><th>Ref</th><th>Estado</th><th>Acción</th></tr>';snap.forEach(d=>{const x=d.data();h+=`<tr><td>${x.nombreArtistico}</td><td>${x.dni}</td><td>${x.aliasMP}</td><td>${x.slug}</td><td>${x.referidoPor}</td><td>${x.estado}</td><td><button onclick="habilitar('${x.slug}',60)">+1h</button><button onclick="habilitar('${x.slug}',180)">+3h</button></td></tr>`});document.getElementById('adminTable').innerHTML=h;});}
+function elegirMontoPub(m){alert('Transferí $'+m+' a '+document.getElementById('pAlias').innerText);}
+async function avisarDonacion(){await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('donaciones').add({monto:1000,ts:Date.now()});alert('Gracias!');}
+
+function showAdmin(t){document.getElementById('adminArtistas').style.display=t==='artistas'?'block':'none';document.getElementById('adminConfig').style.display=t==='config'?'block':'none';document.getElementById('adminPuntos').style.display=t==='puntos'?'block':'none';}
+function renderConfig(){document.getElementById('cfgMin').innerText=config.trialMinutes+' min';document.getElementById('cfgP1').value=config.price1h;document.getElementById('cfgP3').value=config.price3h;document.getElementById('bMapa').innerText=config.mapEnabled?'ON ✅':'OFF';document.getElementById('bMapa').className=config.mapEnabled?'on':'off';document.getElementById('bRank').innerText=config.rankingEnabled?'ON ✅':'OFF';document.getElementById('bRank').className=config.rankingEnabled?'on':'off';document.getElementById('bFichas').innerText=config.fichasEnabled?'ON ✅':'OFF';document.getElementById('bFichas').className=config.fichasEnabled?'on':'off';}
+async function setTrial(m){await db.collection('fugaz_config').doc('global').update({trialMinutes:m});alert('Ahora prueba es '+m+' min');}
+async function setPrecios(){await db.collection('fugaz_config').doc('global').update({price1h:parseInt(document.getElementById('cfgP1').value),price3h:parseInt(document.getElementById('cfgP3').value)});alert('Precios guardados');}
+async function toggle(k){await db.collection('fugaz_config').doc('global').update({[k]:!config[k]});}
+function cargarAdmin(){db.collection('fugaz_artistas_v10').orderBy('creado','desc').onSnapshot(snap=>{let h='<tr><th>Artista</th><th>DNI</th><th>Alias</th><th>Ref</th><th>Estado</th><th>Acción</th></tr>';snap.forEach(d=>{const x=d.data();h+=`<tr><td>${x.nombreArtistico}</td><td>${x.dni}</td><td>${x.aliasMP}</td><td>${x.referidoPor}</td><td>${x.estado}</td><td><button onclick="habilitar('${x.slug}',60)">+1h</button><button onclick="habilitar('${x.slug}',180)">+3h</button></td></tr>`});document.getElementById('adminTable').innerHTML=h;});db.collectionGroup('pagosPlataforma').where('estado','==','pendiente').onSnapshot(s=>{let n='';s.forEach(doc=>{n+=`<div>💰 ${doc.ref.parent.parent.id} $${doc.data().monto} <button onclick="habilitar('${doc.ref.parent.parent.id}',${doc.data().horas*60});marcarPago('${doc.ref.path}')">Habilitar</button></div>`});document.getElementById('adminNotif').innerHTML=n;});db.collection('fugaz_puntos').onSnapshot(s=>{let h='';s.forEach(d=>{h+=`<div>${d.data().nombre} - ${d.id} <button onclick="borrarPunto('${d.id}')">Borrar</button></div>`});document.getElementById('listaPuntosAdmin').innerHTML=h;});}
 async function habilitar(slug,min){await db.collection('fugaz_artistas_v10').doc(slug).update({habilitadoHasta:Date.now()+min*60*1000,estado:'activo'});}
+async function marcarPago(p){await db.doc(p).update({estado:'confirmado'});}
+async function crearPunto(){const n=document.getElementById('ptNombre').value.trim();const lat=parseFloat(document.getElementById('ptLat').value);const lng=parseFloat(document.getElementById('ptLng').value);const desc=document.getElementById('ptDesc').value.trim();if(!n||isNaN(lat)) return alert('Falta');await db.collection('fugaz_puntos').doc(makeSlug(n)).set({nombre:n,lat:lat,lng:lng,desc:desc,creado:Date.now()});alert('Punto creado');}
+async function borrarPunto(id){await db.collection('fugaz_puntos').doc(id).delete();}
+function initMapPublic(){if(map) return;map=L.map('map').setView([-34.9205,-57.9536],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);db.collection('fugaz_puntos').onSnapshot(s=>{markers.forEach(m=>map.removeLayer(m));markers=[];let lista='';s.forEach(d=>{const p=d.data();const m=L.marker([p.lat,p.lng]).addTo(map).bindPopup(`<b>${p.nombre}</b><br>${p.desc}<br><a href="${location.origin+location.pathname}?u=${currentSlug}">Ver vivo</a>`);markers.push(m);lista+=`<div>📍 <b>${p.nombre}</b> - ${p.desc}</div>`;});document.getElementById('listaPuntos').innerHTML=lista;});}
+function cargarPuntosParaReserva(){db.collection('fugaz_puntos').onSnapshot(s=>{let h='<h4>Reservar punto</h4>';s.forEach(d=>{const p=d.data();h+=`<div style="display:flex;justify-content:space-between;border:1px solid #333;padding:6px;border-radius:8px;margin:4px 0">${p.nombre} <button onclick="reservarPunto('${d.id}')">Reservar hoy</button></div>`});document.getElementById('dReservaBox').innerHTML=h;});}
+async function reservarPunto(id){await db.collection('fugaz_puntos').doc(id).collection('reservas').add({artista:currentSlug,desde:Date.now(),hasta:Date.now()+2*60*60*1000});alert('Reservaste '+id+' por 2hs');}
 </script>
 </body>
 </html>
