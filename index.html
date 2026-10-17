@@ -2,88 +2,113 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Talento Fugaz v10</title>
+<title>Talento Fugaz v10.1</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 body{background:#000;color:#fff;font-family:system-ui;padding:10px;text-align:center;margin:0}
-.box{background:#151515;padding:14px;border-radius:16px;max-width:460px;margin:12px auto;border:1px solid #222;text-align:left}
-input{padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;width:92%;margin:6px 0}
-button{background:#00f5d4;color:#000;border:0;padding:12px 18px;border-radius:30px;font-weight:900;margin:4px;cursor:pointer}
+.box{background:#151515;padding:16px;border-radius:16px;max-width:460px;margin:12px auto;border:1px solid #222;text-align:left}
+input{padding:14px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;width:92%;margin:7px 0;font-size:15px}
+button{background:#00f5d4;color:#000;border:0;padding:13px 20px;border-radius:30px;font-weight:900;margin:5px;cursor:pointer}
 button.sec{background:#222;color:#fff;border:1px solid #444}
 .aliasBig{background:#fff;color:#000;padding:14px;border-radius:12px;font-size:22px;font-weight:900;text-align:center;margin:8px 0}
 video{width:100%;max-width:420px;border-radius:16px;border:2px solid #00f5d4;min-height:220px;object-fit:cover;background:#111}
-.aviso{border:1px dashed #444;padding:8px;border-radius:10px;margin:6px 0;font-size:12px;display:flex;justify-content:space-between}
-table{width:100%;font-size:11px;border-collapse:collapse} td,th{border:1px solid #333;padding:4px;text-align:left}
 </style>
 </head>
 <body>
-<h1 style="color:#00f5d4">TALENTO FUGAZ v10</h1>
+<h1 style="color:#00f5d4">TALENTO FUGAZ</h1>
 
 <div id="registro"><div class="box" style="text-align:center">
-<h3>Registro Artista</h3><p id="refMsg" style="color:#00f5d4;font-size:12px"></p>
-<input id="rNombre" placeholder="Nombre artístico"><input id="rDni" placeholder="DNI (solo admin)">
-<input id="rAlias" placeholder="Tu alias MP (donde te dona el público)"><input id="rSlug" placeholder="Tu link permanente: mago-juan">
-<input id="rLugar" placeholder="Lugar: Plaza Moreno"><input id="rHorario" placeholder="Horario: Sab y Dom 17-20hs">
-<button onclick="registrar()">Crear mi QR para siempre</button></div></div>
+<h3>Entrá en 10 segundos</h3><p id="refMsg" style="color:#00f5d4;font-size:12px"></p>
+<input id="rNombre" placeholder="Nombre artístico">
+<input id="rDni" placeholder="DNI">
+<input id="rAlias" placeholder="Tu alias MP">
+<button onclick="registrar()" style="width:100%;font-size:18px">CREAR MI QR PARA SIEMPRE →</button>
+<p style="font-size:11px;color:#666">Después completás lugar y horario para el afiche</p>
+</div></div>
 
 <div id="dash" style="display:none"><div class="box">
-<h3>Mi Panel</h3><p>QR permanente: <b id="dLink"></b></p><div id="dQr"></div>
+<h3 id="dBienvenida"></h3>
+<div style="text-align:center"><div id="dQr"></div><p style="word-break:break-all" id="dLink"></p>
+<button class="sec" onclick="copiarLink()">📋 Copiar link permanente</button></div>
 <p>Estado: <b id="dEstado"></b> - Queda: <b id="dTiempo"></b></p>
-<input id="dNombre" placeholder="Nombre artístico"><input id="dLugar" placeholder="Lugar"><input id="dHorario" placeholder="Horario"><input id="dAlias" placeholder="Tu alias MP">
-<button onclick="guardarEdicion()">Guardar cambios</button><button onclick="generarPDF()">📄 Generar Afiche A4</button>
-<hr><div id="vivoCtrl"><button onclick="prenderVivo()">🔴 PRENDER VIVO</button><p id="dViewers">👀 0</p><video id="localVideo" autoplay muted playsinline></video></div>
-<hr><h4>Pagar plataforma</h4><p>Alias central: <b>familygameshow</b></p>
-<button onclick="solicitarPlan(5000,1)">Pagar $5k - 1 hora</button><button onclick="solicitarPlan(10000,3)">Pagar $10k - 3 horas</button>
-<div id="dDonaciones"></div></div></div>
+<hr>
+<label>Datos básicos (editable)</label>
+<input id="dNombre"><input id="dDni"><input id="dAlias">
+<button onclick="guardarBasico()">Guardar datos</button>
+<hr>
+<label>Para el Afiche / Flyer (opcional)</label>
+<input id="dLugar" placeholder="Lugar: Plaza Moreno, calle 13 y 50">
+<input id="dHorario" placeholder="Fecha y hora: Sáb 19/10 17-20hs">
+<button onclick="generarPDF()" style="background:#fff;width:100%">📄 GENERAR AFICHE A4 CON QR</button>
+<hr>
+<h4>Pagar plataforma</h4><p>Transferí a: <b style="background:#fff;color:#000;padding:4px 8px;border-radius:6px">familygameshow</b></p>
+<button onclick="solicitarPlan(5000,1)">Ya pagué $5k - 1 hora</button><button onclick="solicitarPlan(10000,3)">Ya pagué $10k - 3 horas</button>
+<hr>
+<button onclick="prenderVivo()" style="width:100%">🔴 PRENDER VIVO (prueba 30min gratis)</button>
+<p id="dViewers" style="text-align:center">👀 0</p><video id="localVideo" autoplay muted playsinline></video>
+<div id="dDonaciones" style="font-size:11px"></div>
+</div></div>
 
 <div id="publico" style="display:none"><div class="box" style="text-align:center">
 <h2 id="pNombre"></h2><p id="pLugar"></p><p id="pHorario" style="color:#aaa"></p>
 <video id="remoteVideo" autoplay playsinline muted></video><p id="pStatus"></p>
-<div class="aliasBig" id="pAlias" onclick="copiarAliasPub()"></div><button onclick="copiarAliasPub()" style="width:100%">📋 COPIAR ALIAS DEL ARTISTA</button>
-<div style="margin:8px"><button onclick="elegirMontoPub(500)">$500</button><button onclick="elegirMontoPub(1000)">$1000</button><button onclick="elegirMontoPub(2000)">$2000</button><button onclick="elegirMontoPub(5000)">$5000</button><button onclick="elegirMontoPub(10000)">$10000</button></div>
-<p id="pMonto" style="color:#00f5d4;font-size:12px"></p><button onclick="avisarDonacion()" style="background:#fff;width:100%">✅ YA TRANSFERÍ</button>
-<div id="pMis" style="font-size:11px;background:#111;padding:6px;border-radius:8px;margin-top:8px;text-align:left"></div>
+<div class="aliasBig" id="pAlias"></div><button onclick="copiarAliasPub()" style="width:100%">📋 COPIAR ALIAS</button>
+<div><button onclick="elegirMontoPub(500)">$500</button><button onclick="elegirMontoPub(1000)">$1000</button><button onclick="elegirMontoPub(2000)">$2000</button></div>
+<button onclick="avisarDonacion()" style="background:#fff;width:100%;margin-top:8px">✅ YA TRANSFERÍ</button>
 </div></div>
 
-<div id="admin" style="display:none"><h3>ADMIN - seba508</h3><div class="box"><table id="adminTable"></table></div><div id="adminNotif" style="color:#00f5d4"></div><button onclick="location.reload()">Volver</button></div>
+<div id="admin" style="display:none"><h3>ADMIN seba508</h3><div class="box"><table id="adminTable" style="width:100%;font-size:11px"></table></div><div id="adminNotif"></div></div>
 
 <script>
-const CENTRAL_ALIAS="familygameshow";
-const ADMIN_CLAVE="seba508";
+const CENTRAL_ALIAS="familygameshow";const ADMIN_CLAVE="seba508";
 const firebaseConfig={apiKey:"AIzaSyBu3sYrZ4s0oKba3R7a_hEFwkc2y0Vnyd4",authDomain:"family-game-show.firebaseapp.com",projectId:"family-game-show",storageBucket:"family-game-show.appspot.com",messagingSenderId:"1093862512261",appId:"1:1093862512261:web:6c7d5a3a7c0a6c9d8e1f2a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 const ice={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-let currentSlug=null,localStream,pcs={},myViewerId,montoSel=0;
+let currentSlug=null,localStream,pcs={},montoSel=0;
 const params=new URLSearchParams(location.search);
 const u=params.get('u'), ref=params.get('ref'), admin=params.get('admin'), dash=params.get('dashboard');
 if(admin===ADMIN_CLAVE){document.getElementById('registro').style.display='none';document.getElementById('admin').style.display='block';cargarAdmin();}
 else if(u){document.getElementById('registro').style.display='none';document.getElementById('publico').style.display='block';abrirPublico(u);}
 else if(dash){document.getElementById('registro').style.display='none';document.getElementById('dash').style.display='block';abrirDash(dash);}
-else{ if(ref) document.getElementById('refMsg').innerText='Venís referido por: '+ref; }
+else if(ref) document.getElementById('refMsg').innerText='Venís por: '+ref;
+
+function makeSlug(str){return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20);}
 
 async function registrar(){
- const nombre=document.getElementById('rNombre').value.trim();const dni=document.getElementById('rDni').value.trim();const alias=document.getElementById('rAlias').value.trim();let slug=document.getElementById('rSlug').value.trim().toLowerCase().replace(/\s+/g,'-');const lugar=document.getElementById('rLugar').value.trim();const horario=document.getElementById('rHorario').value.trim();
- if(!nombre||!dni||!alias||!slug) return alert('Completa todo');
- const existe=await db.collection('fugaz_artistas_v10').doc(slug).get();if(existe.exists) return alert('Slug ya existe');
- await db.collection('fugaz_artistas_v10').doc(slug).set({nombreArtistico:nombre,dni:dni,aliasMP:alias,slug:slug,lugar:lugar,horario:horario,referidoPor:ref||'directo',creado:Date.now(),estado:'prueba',habilitadoHasta:Date.now()+30*60*1000,enVivo:false});
+ const nombre=document.getElementById('rNombre').value.trim();const dni=document.getElementById('rDni').value.trim();const alias=document.getElementById('rAlias').value.trim();
+ if(!nombre||!dni||!alias) return alert('Poné nombre, dni y alias');
+ let base=makeSlug(nombre);let slug=base;let i=1;while((await db.collection('fugaz_artistas_v10').doc(slug).get()).exists){slug=base+'-'+i;i++;if(i>10) slug=base+'-'+Date.now();}
+ await db.collection('fugaz_artistas_v10').doc(slug).set({nombreArtistico:nombre,dni:dni,aliasMP:alias,slug:slug,lugar:'',horario:'',referidoPor:ref||'directo',creado:Date.now(),estado:'prueba',habilitadoHasta:Date.now()+30*60*1000,enVivo:false});
  location.href=location.pathname+'?dashboard='+slug;
 }
-async function abrirDash(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();const d=snap.data();document.getElementById('dLink').innerText=location.origin+location.pathname+'?u='+slug;document.getElementById('dQr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(location.origin+location.pathname+'?u='+slug)}">`;document.getElementById('dNombre').value=d.nombreArtistico;document.getElementById('dLugar').value=d.lugar||'';document.getElementById('dHorario').value=d.horario||'';document.getElementById('dAlias').value=d.aliasMP;actualizarEstado(d);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.exists) actualizarEstado(s.data());});}
-function actualizarEstado(d){document.getElementById('dEstado').innerText=d.estado;const queda=Math.max(0,d.habilitadoHasta-Date.now());document.getElementById('dTiempo').innerText=Math.floor(queda/60000)+' min';}
-async function guardarEdicion(){await db.collection('fugaz_artistas_v10').doc(currentSlug).update({nombreArtistico:document.getElementById('dNombre').value.trim(),lugar:document.getElementById('dLugar').value.trim(),horario:document.getElementById('dHorario').value.trim(),aliasMP:document.getElementById('dAlias').value.trim()});alert('Guardado');}
-async function generarPDF(){const {jsPDF}=window.jspdf;const doc=new jsPDF();const snap=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();const d=snap.data();doc.setFontSize(28);doc.text('TALENTO FUGAZ',20,20);doc.setFontSize(20);doc.text(d.nombreArtistico,20,35);doc.setFontSize(12);doc.text('Lugar: '+(d.lugar||''),20,45);doc.text('Horario: '+(d.horario||''),20,52);doc.text('Escanea para ver el vivo y colaborar',20,62);const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(location.origin+location.pathname+'?u='+currentSlug)}`;const img=await fetch(qrUrl).then(r=>r.blob()).then(b=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);}));doc.addImage(img,'PNG',20,70,150,150);doc.text('Alias MP: '+d.aliasMP,20,230);doc.text('Link: ?u='+currentSlug,20,238);doc.save('Afiche-'+currentSlug+'.pdf');}
-async function prenderVivo(){const refDoc=db.collection('fugaz_artistas_v10').doc(currentSlug);const s=await refDoc.get();if(Date.now()>s.data().habilitadoHasta){return alert('Vencido, pagá');}localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;await refDoc.update({enVivo:true});const viewersRef=refDoc.collection('viewers');viewersRef.onSnapshot(snap=>{document.getElementById('dViewers').innerText='👀 '+snap.size;for(let ch of snap.docChanges()){if(ch.type==='added'){const doc=ch.doc;if(pcs[doc.id])continue;const d=doc.data();if(!d.offer)continue;const pc=new RTCPeerConnection(ice);pcs[doc.id]=pc;localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate) doc.ref.collection('callerCandidates').add(e.candidate.toJSON())};pc.setRemoteDescription(new RTCSessionDescription(d.offer)).then(()=>pc.createAnswer().then(a=>pc.setLocalDescription(a).then(()=>doc.ref.update({answer:{type:a.type,sdp:a.sdp}}))));}}});}
-async function solicitarPlan(monto,horas){await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('pagosPlataforma').add({monto:monto,horas:horas,ts:Date.now(),estado:'pendiente'});alert('Avisado. Transferí a '+CENTRAL_ALIAS+' y te habilito');}
-async function abrirPublico(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();if(!snap.exists) return;const d=snap.data();document.getElementById('pNombre').innerText=d.nombreArtistico;document.getElementById('pLugar').innerText=d.lugar||'';document.getElementById('pHorario').innerText=d.horario||'';document.getElementById('pAlias').innerText=d.aliasMP;db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.data().enVivo) conectarViewer(slug);});if(d.enVivo) conectarViewer(slug);}
-async function conectarViewer(slug){const refDoc=db.collection('fugaz_artistas_v10').doc(slug);const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();const v=document.getElementById('remoteVideo');v.srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));v.play().catch(()=>{});};const viewerDoc=refDoc.collection('viewers').doc();myViewerId=viewerDoc.id;pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp}});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});}
-function copiarAliasPub(){const ta=document.createElement('textarea');ta.value=document.getElementById('pAlias').innerText;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Alias copiado');}
-function elegirMontoPub(m){montoSel=m;document.getElementById('pMonto').innerText='Elegiste $'+m;copiarAliasPub();}
-async function avisarDonacion(){if(!montoSel) return alert('Elegí monto');await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('donaciones').add({monto:montoSel,ts:Date.now()});document.getElementById('pMis').innerHTML+=`✅ Avisaste $${montoSel}<br>`;}
-function cargarAdmin(){db.collection('fugaz_artistas_v10').orderBy('creado','desc').onSnapshot(snap=>{let html='<tr><th>Artista</th><th>DNI</th><th>Alias</th><th>Slug</th><th>Ref</th><th>Estado</th><th>Tiempo</th><th>Acción</th></tr>';snap.forEach(doc=>{const d=doc.data();const queda=Math.max(0,d.habilitadoHasta-Date.now());html+=`<tr><td>${d.nombreArtistico}</td><td>${d.dni}</td><td>${d.aliasMP}</td><td><a href="${location.origin+location.pathname}?u=${d.slug}" target="_blank">${d.slug}</a></td><td>${d.referidoPor}</td><td>${d.estado} ${d.enVivo?'🔴':''}</td><td>${Math.floor(queda/60000)}m</td><td><button onclick="habilitar('${d.slug}',60)">+1h $5k</button><button onclick="habilitar('${d.slug}',180)">+3h $10k</button></td></tr>`;});document.getElementById('adminTable').innerHTML=html;});db.collectionGroup('pagosPlataforma').where('estado','==','pendiente').onSnapshot(s=>{s.docChanges().forEach(ch=>{if(ch.type==='added'){const id=ch.doc.ref.parent.parent.id;document.getElementById('adminNotif').innerHTML+=`<div>💰 ${id} quiere ${ch.doc.data().horas}h <button onclick="habilitar('${id}',${ch.doc.data().horas*60});marcarPago('${ch.doc.ref.path}')">Habilitar</button></div>`;}});});}
+async function abrirDash(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();if(!snap.exists) return;const d=snap.data();
+ document.getElementById('dBienvenida').innerText='Hola '+d.nombreArtistico+' 👋';document.getElementById('dLink').innerText=location.origin+location.pathname+'?u='+slug;
+ document.getElementById('dQr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(location.origin+location.pathname+'?u='+slug)}">`;
+ document.getElementById('dNombre').value=d.nombreArtistico;document.getElementById('dDni').value=d.dni;document.getElementById('dAlias').value=d.aliasMP;document.getElementById('dLugar').value=d.lugar||'';document.getElementById('dHorario').value=d.horario||'';
+ actualizarEstado(d);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.exists) actualizarEstado(s.data());});
+}
+function actualizarEstado(d){document.getElementById('dEstado').innerText=d.estado;document.getElementById('dTiempo').innerText=Math.max(0,Math.floor((d.habilitadoHasta-Date.now())/60000))+' min';}
+async function guardarBasico(){await db.collection('fugaz_artistas_v10').doc(currentSlug).update({nombreArtistico:document.getElementById('dNombre').value.trim(),dni:document.getElementById('dDni').value.trim(),aliasMP:document.getElementById('dAlias').value.trim(),lugar:document.getElementById('dLugar').value.trim(),horario:document.getElementById('dHorario').value.trim()});alert('Guardado');}
+function copiarLink(){navigator.clipboard.writeText(document.getElementById('dLink').innerText);alert('Link copiado');}
+async function generarPDF(){
+ const {jsPDF}=window.jspdf;const doc=new jsPDF();const snap=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();const d=snap.data();
+ const lugar=document.getElementById('dLugar').value.trim();const horario=document.getElementById('dHorario').value.trim();
+ await db.collection('fugaz_artistas_v10').doc(currentSlug).update({lugar:lugar,horario:horario});
+ doc.setFontSize(28);doc.text('TALENTO FUGAZ',20,20);doc.setFontSize(22);doc.text(d.nombreArtistico,20,35);doc.setFontSize(13);if(lugar) doc.text('Lugar: '+lugar,20,45);if(horario) doc.text('Cuando: '+horario,20,52);doc.text('Escanea para ver el vivo y colaborar',20,62);
+ const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(location.origin+location.pathname+'?u='+currentSlug)}`;
+ const img=await fetch(qrUrl).then(r=>r.blob()).then(b=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);}));doc.addImage(img,'PNG',20,70,160,160);doc.text('Alias: '+d.aliasMP,20,240);doc.save('Afiche-'+currentSlug+'.pdf');
+}
+async function prenderVivo(){const s=await db.collection('fugaz_artistas_v10').doc(currentSlug).get();if(Date.now()>s.data().habilitadoHasta) return alert('Vencido');localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});document.getElementById('localVideo').srcObject=localStream;await db.collection('fugaz_artistas_v10').doc(currentSlug).update({enVivo:true});db.collection('fugaz_artistas_v10').doc(currentSlug).collection('viewers').onSnapshot(snap=>{document.getElementById('dViewers').innerText='👀 '+snap.size;});}
+async function solicitarPlan(m,d){await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('pagosPlataforma').add({monto:m,horas:d,ts:Date.now(),estado:'pendiente'});alert('Avisado, transferí a '+CENTRAL_ALIAS);}
+async function abrirPublico(slug){currentSlug=slug;const snap=await db.collection('fugaz_artistas_v10').doc(slug).get();const d=snap.data();document.getElementById('pNombre').innerText=d.nombreArtistico;document.getElementById('pLugar').innerText=d.lugar||'';document.getElementById('pHorario').innerText=d.horario||'';document.getElementById('pAlias').innerText=d.aliasMP;if(d.enVivo) conectarViewer(slug);db.collection('fugaz_artistas_v10').doc(slug).onSnapshot(s=>{if(s.data().enVivo) conectarViewer(slug);});}
+async function conectarViewer(slug){const refDoc=db.collection('fugaz_artistas_v10').doc(slug);const pc=new RTCPeerConnection(ice);pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});const rs=new MediaStream();document.getElementById('remoteVideo').srcObject=rs;pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>rs.addTrack(t));};const viewerDoc=refDoc.collection('viewers').doc();pc.onicecandidate=e=>{if(e.candidate) viewerDoc.collection('calleeCandidates').add(e.candidate.toJSON())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);await viewerDoc.set({offer:{type:offer.type,sdp:offer.sdp}});viewerDoc.onSnapshot(async s=>{const d=s.data();if(d&&d.answer&&!pc.currentRemoteDescription){await pc.setRemoteDescription(new RTCSessionDescription(d.answer));}});}
+function copiarAliasPub(){navigator.clipboard.writeText(document.getElementById('pAlias').innerText);alert('Alias copiado');}
+function elegirMontoPub(m){montoSel=m;}
+async function avisarDonacion(){if(!montoSel) return alert('Elegí monto');await db.collection('fugaz_artistas_v10').doc(currentSlug).collection('donaciones').add({monto:montoSel,ts:Date.now()});alert('Gracias!');}
+function cargarAdmin(){db.collection('fugaz_artistas_v10').orderBy('creado','desc').onSnapshot(snap=>{let h='<tr><th>Artista</th><th>DNI</th><th>Alias</th><th>Slug</th><th>Ref</th><th>Estado</th><th>Acción</th></tr>';snap.forEach(d=>{const x=d.data();h+=`<tr><td>${x.nombreArtistico}</td><td>${x.dni}</td><td>${x.aliasMP}</td><td>${x.slug}</td><td>${x.referidoPor}</td><td>${x.estado}</td><td><button onclick="habilitar('${x.slug}',60)">+1h</button><button onclick="habilitar('${x.slug}',180)">+3h</button></td></tr>`});document.getElementById('adminTable').innerHTML=h;});}
 async function habilitar(slug,min){await db.collection('fugaz_artistas_v10').doc(slug).update({habilitadoHasta:Date.now()+min*60*1000,estado:'activo'});}
-async function marcarPago(path){await db.doc(path).update({estado:'confirmado'});}
 </script>
 </body>
 </html>
